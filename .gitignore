@@ -51,8 +51,12 @@ logs/
 # Notebook checkpoints
 .ipynb_checkpoints/
 
-# Local data (keep small, intentional samples versionable)
+# Local data (keep policy, markers, and small intentional samples versionable)
 data/*
+!data/README.md
+!data/raw/
+data/raw/**
+!data/raw/.gitkeep
 !data/sample/
 !data/sample/**
 

@@ -8,15 +8,15 @@ Dados de campanhas, leads, oportunidades e vendas costumam permanecer fragmentad
 
 ## Objetivo
 
-Construir uma base analítica consistente que conecte investimento em marketing à evolução dos leads e à receita gerada, com métricas rastreáveis e definições compartilhadas.
+Construir uma base analítica consistente que conecte cenários de investimento em marketing à aquisição de sellers e ao GMV downstream, com métricas rastreáveis e definições compartilhadas.
 
 ## Perguntas de negócio
 
-- Quais canais e campanhas geram receita?
-- Qual é o CAC e o CPL por canal e campanha?
-- Quais são as taxas de conversão entre as etapas do funil?
-- Qual é o ROAS e o ROI das iniciativas de marketing?
-- Como leads evoluem até oportunidades e vendas?
+- Quais origens e canais estão associados à aquisição de sellers e ao GMV downstream?
+- Qual é o CPL e o Seller Acquisition Cost em cenários sintéticos claramente identificados?
+- Qual é a conversão de MQL para AcquiredSeller e a ativação em 90 dias?
+- Qual é o GMV ROAS dos cenários controlados, sem confundi-lo com retorno contábil?
+- Como MQLs evoluem até ClosedDeals, AcquiredSellers e atividade entregue no marketplace?
 
 ## Visão preliminar da arquitetura
 
@@ -24,7 +24,7 @@ Fontes de marketing e CRM alimentarão uma camada de ingestão. Os dados brutos 
 
 ## Status
 
-**Business Domain / Source Alignment** — o domínio e os contratos semânticos estão sendo alinhados às fontes escolhidas; nenhuma funcionalidade do produto está implementada.
+**Source Contracts / Semantic Freeze** — o profiling empírico das fontes Olist foi concluído e as regras analíticas do MVP foram congeladas para orientar a futura modelagem dimensional; nenhuma transformação analítica ou funcionalidade do produto está implementada.
 
 ## Fontes planejadas para o MVP
 
@@ -36,6 +36,14 @@ Fontes de marketing e CRM alimentarão uma camada de ingestão. Os dados brutos 
 - [Modelo de domínio](docs/business/domain-model.md)
 - [Modelo de atribuição](docs/business/attribution-model.md)
 - [Contrato de KPIs](docs/business/kpi-contract.md)
+- [Semântica analítica do MVP](docs/business/analytics-semantics.md)
+
+## Documentação de fontes
+
+- [Manifesto de fontes](docs/data/source-manifest.md)
+- [Contratos das fontes](docs/data/source-contracts.md)
+
+Datasets raw permanecem locais em `data/raw/` e não são versionados pelo Git.
 
 ## Roadmap macro
 

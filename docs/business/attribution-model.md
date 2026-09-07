@@ -36,8 +36,8 @@ The MVP uses **First Known Acquisition Source**, based on the acquisition inform
 - raw source: origin;
 - first known acquisition date: first_contact_date;
 - acquisition context: landing_page_id;
-- normalized reporting dimension: Channel derived from origin through a governed mapping;
-- Campaign: null unless an explicit, versioned derivation is later approved.
+- normalized reporting dimension: Channel derived from origin through the minimal mapping in `analytics-semantics.md`;
+- Campaign: null for every MVP Olist outcome.
 
 This model is conceptually close to first touch, but it is intentionally named differently because the source proves only the first origin known to the dataset, not the prospect's true first interaction.
 
@@ -46,7 +46,7 @@ This model is conceptually close to first touch, but it is intentionally named d
 1. Each Lead/MQL receives one normalized Channel from its retained origin value or the reserved Unattributed classification.
 2. The Olist Lead receives no Campaign by default; landing_page_id remains acquisition context, not a campaign identifier.
 3. A valid ClosedDeal and its AcquiredSeller inherit the Lead's First Known Acquisition Source through mql_id and seller_id lineage.
-4. Order items supplied by that AcquiredSeller and related downstream GMV inherit the seller's acquisition source for analytical grouping.
+4. Delivered Order Items purchased strictly after that seller's won_date and related downstream GMV inherit the seller's acquisition source for analytical grouping.
 5. The attribution is a downstream association with acquired-seller origin. It does not prove that marketing caused an individual Order.
 
 ## Attribution window
@@ -55,13 +55,15 @@ No lookback window is applied in the operational MVP. The public source provides
 
 The previous 90-day rule is removed from the operational contract. A future lookback window may be evaluated only if a new source supplies sufficiently complete, timestamped interaction history; it remains an OPEN DECISION rather than an existing capability.
 
+This acquisition-attribution lookback is distinct from the frozen 90-day **post-acquisition seller activation window**. The latter measures downstream behavior after won_date and does not imply missing pre-MQL touch history.
+
 ## Channel normalization
 
-- Retain raw origin exactly as supplied.
-- Map origin to Channel through a documented, versioned taxonomy.
+- Retain raw origin as `source_origin` exactly as supplied.
+- Apply only the explicit one-to-one/minimal mappings in `analytics-semantics.md`; no paid/organic rollup is inferred.
+- `direct_traffic` maps to `direct`; literal `unknown`, null, or an unrecognized future value maps to `unattributed`.
 - Preserve mapping status and version so historical changes are auditable.
-- Map missing or unrecognized origin to Unattributed; never silently drop the Lead.
-- Use Organic or Direct only when an approved mapping from an observed origin supports that classification. Missing evidence is Unattributed, not Direct.
+- Never silently drop a Lead because its source is missing or unmapped.
 
 ## Campaign limitation
 
@@ -69,9 +71,9 @@ The Olist Marketing Funnel does not provide a complete campaign identifier equiv
 
 - Do not create or infer campaign_id from mql_id, origin, or landing_page_id.
 - landing_page_id remains a source attribute.
-- A future mapping from landing_page_id to Campaign is a derived business rule and requires documented evidence, ownership, versioning, and coverage.
-- Campaign can exist fully in the controlled synthetic Advertising Spend source.
-- Campaign-level CPL, Seller Acquisition Cost, GMV ROAS, or conversion reporting is unavailable for Olist outcomes until a compatible mapping is approved.
+- A future mapping from landing_page_id to Campaign would be a derived business rule and requires documented evidence, ownership, versioning, and coverage.
+- Campaign is also omitted from the synthetic Advertising Spend MVP contract to prevent a cost dimension that cannot join to outcomes.
+- Campaign-level CPL, Seller Acquisition Cost, GMV ROAS, or conversion reporting is unavailable in the MVP.
 - Channel-level analysis is the initial supported acquisition view because Channel can be normalized from origin.
 
 ## Unattributed Leads
@@ -88,7 +90,7 @@ A corrected source record or taxonomy mapping may restate normalized Channel thr
 
 ## Multiple Orders for one AcquiredSeller
 
-An AcquiredSeller is counted once for acquisition. All eligible order items and Orders associated with that seller through seller_id can be grouped under the seller's acquisition Channel.
+An AcquiredSeller is counted once for acquisition. Delivered, post-win Order Items and Orders associated with that seller through seller_id can be grouped under the seller's acquisition Channel.
 
 This propagation measures downstream performance associated with the acquired seller. It is not repeat acquisition, EndCustomer acquisition, or causal advertising return. Multi-seller Orders may appear in more than one Channel slice and must be treated as non-additive across those slices.
 
@@ -96,9 +98,10 @@ This propagation measures downstream performance associated with the acquired se
 
 Advertising Spend is a controlled synthetic source, not an observed Olist fact.
 
-- It must be labeled CONTROLLED_SYNTHETIC and carry scenario/methodology version.
-- Channel values must use the same governed taxonomy as normalized Olist origin before channel-level ratios are computed.
-- Campaign-level spend may exist synthetically, but campaign-level outcome ratios remain unsupported unless a defensible Olist outcome mapping exists.
+- It must be labeled CONTROLLED_SYNTHETIC and carry scenario, methodology version, and deterministic seed.
+- It uses daily source_origin/scenario grain and the same minimal Channel mapping as Olist outcomes.
+- Campaign is absent from the MVP synthetic source.
+- Generation must not inspect downstream outcomes or tune spend to create desirable ratios.
 - Results combining synthetic spend with real outcomes must be labeled scenario metrics, never historical Olist advertising performance.
 
 ## Historical reassignment
@@ -124,8 +127,6 @@ Partial reassignment is prohibited because it would create inconsistent numerato
 
 ## OPEN DECISIONS
 
-- Approve the origin-to-Channel taxonomy and mapping ownership.
-- Decide whether a defensible landing_page_id-to-Campaign mapping exists; default remains no Campaign.
-- Define the controlled synthetic spend-generation and disclosure methodology.
 - Determine whether a future interaction source justifies true first-touch, last-touch, multi-touch, or a lookback window.
+- Revisit Campaign only if a source-backed, governed identifier becomes available.
 - Set rules for historical mapping restatements and their published version labels.

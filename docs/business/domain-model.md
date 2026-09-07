@@ -30,7 +30,7 @@ Synthetic records must carry explicit provenance and must never be labeled, pres
 
 **Domain purpose:** support comparable seller-acquisition and downstream-performance analysis across raw origin values.
 
-**Conceptual identifier:** stable analytical channel code from a versioned normalization taxonomy.
+**Conceptual identifier:** stable analytical channel code from the minimal mapping frozen in `analytics-semantics.md`.
 
 **Essential attributes:** canonical name, retained raw origin, normalization rule/version, classification status, and active period.
 
@@ -38,7 +38,7 @@ Synthetic records must carry explicit provenance and must never be labeled, pres
 
 **Relevant lifecycle events:** classification introduced, mapping revised, renamed, or retired.
 
-**Ambiguities / decisions pending:** exact origin normalization and effective-dated behavior when mappings change.
+**Ambiguities / decisions pending:** effective-dated behavior for future mapping corrections. The MVP origin-to-Channel values are no longer open.
 
 ### Campaign
 
@@ -46,7 +46,7 @@ Synthetic records must carry explicit provenance and must never be labeled, pres
 
 **Domain purpose:** provide campaign-level cost and outcome analysis only where a source supplies Campaign identity or an approved derivation exists.
 
-**Conceptual identifier:** source-qualified campaign identifier from the future synthetic spend source or another explicitly governed source.
+**Conceptual identifier:** source-qualified campaign identifier from a future governed source; none exists in the MVP contracts.
 
 **Essential attributes:** campaign name, source provenance, Channel, lifecycle dates/status, and mapping confidence.
 
@@ -54,7 +54,7 @@ Synthetic records must carry explicit provenance and must never be labeled, pres
 
 **Relevant lifecycle events:** created, activated, paused, ended, remapped, or retired.
 
-**Ambiguities / decisions pending:** the Olist Marketing Funnel does not provide a complete advertising-platform campaign identifier taxonomy. landing_page_id must be retained as its own source attribute and must not be relabeled as Campaign without an approved derived mapping.
+**Ambiguities / decisions pending:** the Olist Marketing Funnel does not provide a complete advertising-platform campaign identifier taxonomy. landing_page_id must be retained as its own source attribute and must not be relabeled as Campaign. The synthetic spend MVP also omits Campaign; the entity remains future-only.
 
 ### Lead (Marketing Qualified Lead)
 
@@ -64,13 +64,13 @@ Synthetic records must carry explicit provenance and must never be labeled, pres
 
 **Conceptual identifier:** source mql_id.
 
-**Essential attributes:** mql_id, first_contact_date, origin, landing_page_id, normalized Channel, optional derived Campaign, and attribution/provenance status.
+**Essential attributes:** mql_id, first_contact_date, origin retained as source_origin, normalized Channel, landing_page_id, and attribution/provenance status. Campaign is null in the MVP.
 
-**Relationships:** may have one successful ClosedDeal link in the public funnel data, subject to source uniqueness validation; may be associated conceptually with a sales Opportunity even though that stage is not independently observable.
+**Relationships:** may have one successful ClosedDeal link in the observed public funnel copy; may be associated conceptually with a sales Opportunity even though that stage is not independently observable.
 
 **Relevant lifecycle events:** first known contact/MQL entry and successful close when a matching ClosedDeal exists. Intermediate sales-stage events are not invented.
 
-**Ambiguities / decisions pending:** source uniqueness, missing origin/landing page treatment, and whether any defensible Opportunity proxy can be derived later.
+**Ambiguities / decisions pending:** whether any defensible Opportunity proxy can be derived later. Missing/unknown origin handling is frozen in `analytics-semantics.md`.
 
 ### Opportunity
 
@@ -94,7 +94,7 @@ Synthetic records must carry explicit provenance and must never be labeled, pres
 
 **Domain purpose:** represent marketing conversion/seller acquisition, not an e-commerce purchase.
 
-**Conceptual identifier:** source-qualified closed-deal row identity; mql_id is the known Lead link and seller_id is the known acquired-seller link. Their cardinality and uniqueness must be validated rather than assumed.
+**Conceptual identifier:** source-qualified closed-deal row identity. In the observed copy, both mql_id and seller_id are unique and non-null and form a 1:1 mapping; future refreshes must revalidate this contract.
 
 **Essential attributes:** mql_id, seller_id, close/won date when supplied, retained source attributes, and lineage status.
 
@@ -102,7 +102,7 @@ Synthetic records must carry explicit provenance and must never be labeled, pres
 
 **Relevant lifecycle events:** successful close recorded and later source correction, if any. Lost or intermediate states are not inferred from absence of a ClosedDeal row.
 
-**Ambiguities / decisions pending:** duplicate-row handling, source uniqueness, and any correction/cancellation semantics available in the source.
+**Ambiguities / decisions pending:** future source corrections or cancellation semantics if a refreshed source exposes them.
 
 ### AcquiredSeller
 
@@ -112,13 +112,13 @@ Synthetic records must carry explicit provenance and must never be labeled, pres
 
 **Conceptual identifier:** source seller_id.
 
-**Essential attributes:** seller_id, linked mql_id, seller-acquired date from the valid ClosedDeal, acquisition Channel, optional Campaign, and lineage confidence.
+**Essential attributes:** seller_id, linked mql_id, seller-acquired date from the valid ClosedDeal, acquisition Channel, and lineage confidence. Campaign is null in the MVP.
 
 **Relationships:** results from a ClosedDeal; supplies zero or more order items; can participate in zero or more Orders; inherits acquisition source from its Lead.
 
-**Relevant lifecycle events:** acquired through successful close and first observed eligible order-item participation. Later seller operating states are not invented without source support.
+**Relevant lifecycle events:** acquired through successful close and activated by the first delivered Order Item participation strictly after the close and within the 90-day MVP window. Later seller operating states are not invented without source support.
 
-**Ambiguities / decisions pending:** duplicate seller_id links, seller activation definition/window, and treatment of sellers already present before funnel acquisition.
+**Ambiguities / decisions pending:** treatment of historical sellers if a future refresh reveals pre-win activity. Pre-win activity never satisfies MVP activation.
 
 ### MarketingSpend
 
@@ -128,13 +128,13 @@ Synthetic records must carry explicit provenance and must never be labeled, pres
 
 **Conceptual identifier:** deterministic synthetic observation identity at the generated grain.
 
-**Essential attributes:** spend date/period, amount, currency, Channel, optional Campaign, generation-method version, scenario identifier, and CONTROLLED_SYNTHETIC provenance.
+**Essential attributes:** spend date, source_origin, Channel, amount, currency, generation seed, methodology version, scenario identifier, and CONTROLLED_SYNTHETIC provenance.
 
-**Relationships:** maps directly to a Channel and optionally Campaign; is compared with real MQL, AcquiredSeller, and downstream GMV outcomes only when the generation/mapping methodology makes the slice compatible.
+**Relationships:** maps deterministically from source_origin to Channel; is compared with real MQL, AcquiredSeller, and downstream GMV outcomes only when scenario, date, and origin slices are compatible. Campaign is absent from the MVP spend contract.
 
 **Relevant lifecycle events:** generated, validated, versioned, superseded, or withdrawn.
 
-**Ambiguities / decisions pending:** generation methodology, realistic constraints, campaign taxonomy, currency, time grain, and rules preventing synthetic values from being presented as observed facts.
+**Ambiguities / decisions pending:** numerical distribution parameters remain implementation inputs. Grain, required fields, BRL scenario currency, deterministic generation, provenance, and leakage-prevention rules are frozen in `analytics-semantics.md`.
 
 ### Order
 
@@ -150,7 +150,7 @@ Synthetic records must carry explicit provenance and must never be labeled, pres
 
 **Relevant lifecycle events:** placed, approved, delivered, cancelled, or otherwise transitioned according to source status.
 
-**Ambiguities / decisions pending:** eligible order statuses, cancellation/refund handling, and non-additivity when one Order contains items from multiple sellers.
+**Ambiguities / decisions pending:** refund/chargeback treatment if a future source exposes those events. The MVP includes only `delivered`; seller slices remain non-additive when one Order contains items from multiple sellers.
 
 ### EndCustomer
 
@@ -239,20 +239,18 @@ Marketing Source (first known origin / landing page)
 6. Channel may be normalized from retained raw origin; unmapped/missing origin remains visible as Unattributed.
 7. Opportunity is not counted unless a defensible independent record or derivation is approved.
 8. Seller downstream activity is linked through seller_id at OrderItem grain; multi-seller Orders require explicit non-additivity handling.
-9. MVP GMV is a marketplace sales-value proxy from eligible order items, not Olist corporate or accounting revenue.
-10. Synthetic MarketingSpend is always distinguishable from real-world Olist records in storage, calculations, and presentation.
-11. Missing, inapplicable, or incomplete data is not equivalent to zero.
-12. Monetary aggregation requires a common currency and an approved inclusion rule.
+9. An MVP Eligible Order has source status `delivered`; all other observed statuses are excluded.
+10. Seller activation requires a delivered Order Item participation strictly after won_date and no later than 90 days after won_date; incomplete 90-day cohorts are not counted as failures.
+11. MVP GMV sums Order Item price for delivered, post-win acquired-seller activity; it excludes freight and payment_value and is not Olist corporate or accounting revenue.
+12. Synthetic MarketingSpend is always distinguishable from real-world Olist records in storage, calculations, and presentation.
+13. Missing, inapplicable, or incomplete data is not equivalent to zero.
+14. Monetary aggregation requires a common currency and an approved inclusion rule.
 
 ## OPEN DECISIONS
 
-- Approve the Channel taxonomy and versioned mapping from Marketing Funnel origin.
-- Decide whether any landing_page_id to Campaign mapping is defensible; otherwise keep Campaign null for Olist outcomes.
-- Define and validate the controlled synthetic spend-generation methodology and disclosure.
 - Determine whether Opportunity is observable or can be derived without inventing lifecycle states.
-- Define eligible Order statuses and cancellation/refund treatment.
-- Define GMV inclusions, including item price, freight, discounts, and adjustments.
-- Define seller activation event and observation window.
-- Confirm source identifier uniqueness/cardinality and treatment of duplicate funnel links.
-- Set reporting timezone and late-arriving/correction policy.
+- Revisit Campaign only if a source-backed, governed campaign identifier becomes available.
+- Define refund/chargeback treatment if a future source exposes those events.
+- Set reporting timezone and future source-correction policy.
+- Establish a source-backed snapshot timestamp and conversion-maturity SLA for future refreshes.
 - Decide whether EndCustomer analysis is needed beyond Order context.
