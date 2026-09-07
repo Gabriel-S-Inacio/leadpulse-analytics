@@ -24,7 +24,18 @@ Fontes de marketing e CRM alimentarão uma camada de ingestão. Os dados brutos 
 
 ## Status
 
-**Foundation / Discovery** — apenas a estrutura inicial do repositório foi estabelecida; nenhuma funcionalidade do produto está implementada.
+**Business Domain / Source Alignment** — o domínio e os contratos semânticos estão sendo alinhados às fontes escolhidas; nenhuma funcionalidade do produto está implementada.
+
+## Fontes planejadas para o MVP
+
+- **Dados reais:** Olist Marketing Funnel e Olist Brazilian E-Commerce.
+- **Dados sintéticos controlados:** Advertising Spend, sempre identificado como sintético e nunca apresentado como dado observado da Olist.
+
+## Documentação de domínio
+
+- [Modelo de domínio](docs/business/domain-model.md)
+- [Modelo de atribuição](docs/business/attribution-model.md)
+- [Contrato de KPIs](docs/business/kpi-contract.md)
 
 ## Roadmap macro
 
