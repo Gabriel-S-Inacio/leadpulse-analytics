@@ -71,3 +71,9 @@ docker-compose.override.yaml
 compose.override.yml
 compose.override.yaml
 .docker/
+
+# dbt local outputs
+transform/target/
+transform/dbt_packages/
+transform/logs/
+transform/.user.yml

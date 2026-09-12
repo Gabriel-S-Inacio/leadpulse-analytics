@@ -24,7 +24,7 @@ Fontes de marketing e CRM alimentarão uma camada de ingestão. Os dados brutos 
 
 ## Status
 
-**Dimensional Model Design** — o grain dos processos, fatos, dimensões conformadas e lineage dos KPIs foram definidos conceitualmente; nenhum modelo físico, SQL ou pipeline está implementado.
+**Data Platform Foundation** — o modelo dimensional está congelado e os slices executáveis validam MQL e Closed Deals de CSV → PostgreSQL raw → dbt staging. As tabelas analíticas continuam fora desta etapa.
 
 ## Fontes planejadas para o MVP
 
@@ -48,9 +48,54 @@ Fontes de marketing e CRM alimentarão uma camada de ingestão. Os dados brutos 
 
 - [Modelo dimensional conceitual](docs/architecture/dimensional-model.md)
 - [Schema lógico analítico](docs/architecture/logical-schema.md)
+- [Plataforma física de dados](docs/architecture/physical-data-platform.md)
 - [ADR 0001 — estratégia do modelo dimensional](docs/decisions/0001-dimensional-model-strategy.md)
 
 Datasets raw permanecem locais em `data/raw/` e não são versionados pelo Git.
+
+## Desenvolvimento local — slices do funil
+
+Os comandos abaixo partem da raiz do repositório e usam somente o ambiente virtual local.
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install -e ".[dev,data]"
+Copy-Item .env.example .env
+```
+
+Revise a senha de desenvolvimento em `.env` e carregue as variáveis na sessão atual:
+Se a porta 5432 não estiver disponível, altere somente `POSTGRES_PORT` no `.env` local.
+
+```powershell
+Get-Content .env | Where-Object { $_ -and -not $_.StartsWith('#') } | ForEach-Object {
+    $name, $value = $_.Split('=', 2)
+    Set-Item -Path "Env:$name" -Value $value
+}
+```
+
+Suba e valide o PostgreSQL, carregue os snapshots MQL e Closed Deals e execute o staging dbt:
+
+```powershell
+docker compose up -d postgres
+docker compose ps
+python -m leadpulse.ingestion.mql
+python -m leadpulse.ingestion.closed_deals
+dbt debug --project-dir transform --profiles-dir transform
+dbt run --project-dir transform --profiles-dir transform --select path:models/staging
+dbt test --project-dir transform --profiles-dir transform --select path:models/staging
+```
+
+Valide os testes Python e, opcionalmente, as contagens no PostgreSQL:
+
+```powershell
+python -m unittest discover -s tests -v
+docker compose exec -T postgres psql -U $env:POSTGRES_USER -d $env:POSTGRES_DB -c "SELECT COUNT(*) FROM raw.olist_marketing_qualified_leads;"
+docker compose exec -T postgres psql -U $env:POSTGRES_USER -d $env:POSTGRES_DB -c "SELECT COUNT(*) FROM raw.olist_closed_deals;"
+docker compose exec -T postgres psql -U $env:POSTGRES_USER -d $env:POSTGRES_DB -c "SELECT COUNT(*) FROM staging.stg_olist_marketing_qualified_leads;"
+docker compose exec -T postgres psql -U $env:POSTGRES_USER -d $env:POSTGRES_DB -c "SELECT COUNT(*) FROM staging.stg_olist_closed_deals;"
+```
 
 ## Roadmap macro
 

@@ -1,0 +1,11 @@
+version: 2
+
+sources:
+  - name: olist_raw
+    description: Source-shaped Olist snapshots loaded by LeadPulse ingestion.
+    schema: raw
+    tables:
+      - name: olist_marketing_qualified_leads
+        description: Historical static Kaggle MQL snapshot; no source freshness SLA applies.
+      - name: olist_closed_deals
+        description: Historical static Kaggle Closed Deals snapshot; no source freshness SLA applies.

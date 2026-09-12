@@ -1,0 +1,36 @@
+version: 2
+
+models:
+  - name: stg_olist_marketing_qualified_leads
+    description: Typed and consistently named MQL source records without business channel mapping.
+    columns:
+      - name: mql_id
+        description: Source MQL identifier.
+        data_tests:
+          - not_null
+          - unique
+      - name: first_contact_date
+        description: Source first-contact date converted from raw text to DATE.
+      - name: landing_page_id
+        description: Source landing-page identifier; not a Campaign.
+      - name: source_origin
+        description: Raw acquisition origin preserved without Channel normalization.
+  - name: stg_olist_closed_deals
+    description: Technically normalized Closed Deals records without dimensional enrichment.
+    columns:
+      - name: mql_id
+        description: Source MQL identifier for the observed funnel relationship.
+        data_tests:
+          - not_null
+          - unique
+          - relationships:
+              arguments:
+                to: ref('stg_olist_marketing_qualified_leads')
+                field: mql_id
+      - name: seller_id
+        description: Source seller identifier; observed as one-to-one in this snapshot.
+        data_tests:
+          - not_null
+          - unique
+      - name: won_date
+        description: Source won timestamp converted from raw text to TIMESTAMP.
