@@ -98,7 +98,7 @@ This propagation measures downstream performance associated with the acquired se
 
 Advertising Spend is a controlled synthetic source, not an observed Olist fact.
 
-- It must be labeled CONTROLLED_SYNTHETIC and carry scenario, methodology version, and deterministic seed.
+- It must be labeled SYNTHETIC and carry scenario, methodology version, and deterministic seed.
 - It uses daily source_origin/scenario grain and the same minimal Channel mapping as Olist outcomes.
 - Campaign is absent from the MVP synthetic source.
 - Generation must not inspect downstream outcomes or tune spend to create desirable ratios.

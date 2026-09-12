@@ -165,7 +165,7 @@ source_origin/Channel/day and overall/scenario period.
 Generated spend date or allocated interval.
 
 ### FILTER BEHAVIOR
-Every result requires scenario and CONTROLLED_SYNTHETIC provenance. source_origin and Channel must follow the frozen mapping. Campaign is absent.
+Every result requires scenario and SYNTHETIC provenance. source_origin and Channel must follow the frozen mapping. Campaign is absent.
 
 ### ZERO / NULL BEHAVIOR
 Return 0 only when an applicable, complete scenario intentionally generates no spend; null when no compatible scenario exists.
@@ -437,7 +437,7 @@ A positive mature denominator with no activations returns 0. Zero denominator or
 YES for source_origin/Channel views.
 
 ### KNOWN LIMITATIONS
-The static source cutoff is inferred. Later source corrections can restate status and maturity.
+The static source cutoff is inferred. Later source corrections publish a new lifecycle source/rule/cutoff version; previously published version rows remain reproducible rather than being overwritten.
 
 ## Orders per Activated Seller
 

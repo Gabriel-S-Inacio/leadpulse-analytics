@@ -24,7 +24,7 @@ Fontes de marketing e CRM alimentarão uma camada de ingestão. Os dados brutos 
 
 ## Status
 
-**Source Contracts / Semantic Freeze** — o profiling empírico das fontes Olist foi concluído e as regras analíticas do MVP foram congeladas para orientar a futura modelagem dimensional; nenhuma transformação analítica ou funcionalidade do produto está implementada.
+**Dimensional Model Design** — o grain dos processos, fatos, dimensões conformadas e lineage dos KPIs foram definidos conceitualmente; nenhum modelo físico, SQL ou pipeline está implementado.
 
 ## Fontes planejadas para o MVP
 
@@ -42,6 +42,13 @@ Fontes de marketing e CRM alimentarão uma camada de ingestão. Os dados brutos 
 
 - [Manifesto de fontes](docs/data/source-manifest.md)
 - [Contratos das fontes](docs/data/source-contracts.md)
+- [Contratos de dados analíticos](docs/data/analytics-data-contracts.md)
+
+## Documentação de arquitetura
+
+- [Modelo dimensional conceitual](docs/architecture/dimensional-model.md)
+- [Schema lógico analítico](docs/architecture/logical-schema.md)
+- [ADR 0001 — estratégia do modelo dimensional](docs/decisions/0001-dimensional-model-strategy.md)
 
 Datasets raw permanecem locais em `data/raw/` e não são versionados pelo Git.
 

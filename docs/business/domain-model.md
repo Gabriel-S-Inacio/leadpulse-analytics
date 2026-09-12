@@ -128,7 +128,7 @@ Synthetic records must carry explicit provenance and must never be labeled, pres
 
 **Conceptual identifier:** deterministic synthetic observation identity at the generated grain.
 
-**Essential attributes:** spend date, source_origin, Channel, amount, currency, generation seed, methodology version, scenario identifier, and CONTROLLED_SYNTHETIC provenance.
+**Essential attributes:** spend date, source_origin, Channel, amount, currency, generation seed, methodology version, scenario identifier, and SYNTHETIC provenance.
 
 **Relationships:** maps deterministically from source_origin to Channel; is compared with real MQL, AcquiredSeller, and downstream GMV outcomes only when scenario, date, and origin slices are compatible. Campaign is absent from the MVP spend contract.
 

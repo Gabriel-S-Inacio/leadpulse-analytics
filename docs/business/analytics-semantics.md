@@ -190,7 +190,7 @@ Required fields:
 - `currency`, fixed to `BRL` for an MVP scenario;
 - `scenario_id` and `methodology_version`;
 - `generation_seed`;
-- `data_classification = CONTROLLED_SYNTHETIC`.
+- `data_classification = SYNTHETIC`.
 
 Generation must be deterministic for the same seed and methodology version, preserve the declared date/origin grain, avoid duplicate keys, and document plausible bounds before generation. Each scenario declares an a-priori allowlist of spend-eligible source_origin values; the contract does not assume that every observed origin is paid. Zero spend must be intentional rather than missing. Campaign is not generated in the MVP.
 
