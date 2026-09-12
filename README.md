@@ -24,7 +24,7 @@ Fontes de marketing e CRM alimentarão uma camada de ingestão. Os dados brutos 
 
 ## Status
 
-**Data Platform Foundation** — o modelo dimensional está congelado e os slices executáveis validam MQL e Closed Deals de CSV → PostgreSQL raw → dbt staging. As tabelas analíticas continuam fora desta etapa.
+**Data Platform Foundation** — os slices executáveis validam MQL, Closed Deals, Sellers, Orders e Order Items de CSV → PostgreSQL raw → dbt staging. As tabelas dimensionais analíticas continuam fora desta etapa.
 
 ## Fontes planejadas para o MVP
 
@@ -53,7 +53,7 @@ Fontes de marketing e CRM alimentarão uma camada de ingestão. Os dados brutos 
 
 Datasets raw permanecem locais em `data/raw/` e não são versionados pelo Git.
 
-## Desenvolvimento local — slices do funil
+## Desenvolvimento local — ingestão e staging
 
 Os comandos abaixo partem da raiz do repositório e usam somente o ambiente virtual local.
 
@@ -75,13 +75,16 @@ Get-Content .env | Where-Object { $_ -and -not $_.StartsWith('#') } | ForEach-Ob
 }
 ```
 
-Suba e valide o PostgreSQL, carregue os snapshots MQL e Closed Deals e execute o staging dbt:
+Suba e valide o PostgreSQL, carregue os snapshots implementados e execute o staging dbt:
 
 ```powershell
 docker compose up -d postgres
 docker compose ps
-python -m leadpulse.ingestion.mql
-python -m leadpulse.ingestion.closed_deals
+python -m leadpulse.ingestion mql
+python -m leadpulse.ingestion closed-deals
+python -m leadpulse.ingestion sellers
+python -m leadpulse.ingestion orders
+python -m leadpulse.ingestion order-items
 dbt debug --project-dir transform --profiles-dir transform
 dbt run --project-dir transform --profiles-dir transform --select path:models/staging
 dbt test --project-dir transform --profiles-dir transform --select path:models/staging
@@ -93,6 +96,9 @@ Valide os testes Python e, opcionalmente, as contagens no PostgreSQL:
 python -m unittest discover -s tests -v
 docker compose exec -T postgres psql -U $env:POSTGRES_USER -d $env:POSTGRES_DB -c "SELECT COUNT(*) FROM raw.olist_marketing_qualified_leads;"
 docker compose exec -T postgres psql -U $env:POSTGRES_USER -d $env:POSTGRES_DB -c "SELECT COUNT(*) FROM raw.olist_closed_deals;"
+docker compose exec -T postgres psql -U $env:POSTGRES_USER -d $env:POSTGRES_DB -c "SELECT COUNT(*) FROM raw.olist_sellers;"
+docker compose exec -T postgres psql -U $env:POSTGRES_USER -d $env:POSTGRES_DB -c "SELECT COUNT(*) FROM raw.olist_orders;"
+docker compose exec -T postgres psql -U $env:POSTGRES_USER -d $env:POSTGRES_DB -c "SELECT COUNT(*) FROM raw.olist_order_items;"
 docker compose exec -T postgres psql -U $env:POSTGRES_USER -d $env:POSTGRES_DB -c "SELECT COUNT(*) FROM staging.stg_olist_marketing_qualified_leads;"
 docker compose exec -T postgres psql -U $env:POSTGRES_USER -d $env:POSTGRES_DB -c "SELECT COUNT(*) FROM staging.stg_olist_closed_deals;"
 ```

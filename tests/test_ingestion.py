@@ -13,6 +13,10 @@ sys.path.insert(0, str(SRC_PATH))
 from leadpulse.ingestion.config import ConfigurationError, PostgresConfig
 from leadpulse.ingestion.contracts import (
     CLOSED_DEALS_CONTRACT,
+    ORDER_ITEMS_CONTRACT,
+    ORDERS_CONTRACT,
+    SELLERS_CONTRACT,
+    SOURCE_CONTRACTS,
     RawSnapshotContract,
 )
 from leadpulse.ingestion.metadata import build_source_metadata
@@ -109,6 +113,26 @@ class RawSnapshotContractTest(unittest.TestCase):
                 encoding="utf-8",
             )
             validate_source_header(source, CLOSED_DEALS_CONTRACT)
+
+    def test_validates_commerce_source_headers_with_shared_logic(self) -> None:
+        contracts = (SELLERS_CONTRACT, ORDERS_CONTRACT, ORDER_ITEMS_CONTRACT)
+        with tempfile.TemporaryDirectory() as temporary:
+            for contract in contracts:
+                with self.subTest(source=contract.name):
+                    source = Path(temporary) / f"{contract.table}.csv"
+                    source.write_text(
+                        ",".join(contract.source_columns) + "\n",
+                        encoding="utf-8",
+                    )
+                    validate_source_header(source, contract)
+
+    def test_unified_source_registry_targets_distinct_raw_tables(self) -> None:
+        targets = [contract.target_table for contract in SOURCE_CONTRACTS.values()]
+        self.assertEqual(len(targets), len(set(targets)))
+        self.assertEqual(
+            set(SOURCE_CONTRACTS),
+            {"mql", "closed-deals", "sellers", "orders", "order-items"},
+        )
 
     def test_rejects_unknown_required_column(self) -> None:
         with self.assertRaisesRegex(ValueError, "Unknown required column"):

@@ -87,3 +87,86 @@ CLOSED_DEALS_CONTRACT = RawSnapshotContract(
     required_columns=("mql_id", "seller_id", "won_date"),
     primary_key=("mql_id",),
 )
+
+
+SELLERS_CONTRACT = RawSnapshotContract(
+    name="sellers",
+    default_source=Path(
+        "data/raw/olist_brazilian_ecommerce/olist_sellers_dataset.csv"
+    ),
+    schema="raw",
+    table="olist_sellers",
+    source_columns=(
+        "seller_id",
+        "seller_zip_code_prefix",
+        "seller_city",
+        "seller_state",
+    ),
+    required_columns=("seller_id",),
+    primary_key=("seller_id",),
+)
+
+
+ORDERS_CONTRACT = RawSnapshotContract(
+    name="orders",
+    default_source=Path(
+        "data/raw/olist_brazilian_ecommerce/olist_orders_dataset.csv"
+    ),
+    schema="raw",
+    table="olist_orders",
+    source_columns=(
+        "order_id",
+        "customer_id",
+        "order_status",
+        "order_purchase_timestamp",
+        "order_approved_at",
+        "order_delivered_carrier_date",
+        "order_delivered_customer_date",
+        "order_estimated_delivery_date",
+    ),
+    required_columns=(
+        "order_id",
+        "customer_id",
+        "order_status",
+        "order_purchase_timestamp",
+    ),
+    primary_key=("order_id",),
+)
+
+
+ORDER_ITEMS_CONTRACT = RawSnapshotContract(
+    name="order items",
+    default_source=Path(
+        "data/raw/olist_brazilian_ecommerce/olist_order_items_dataset.csv"
+    ),
+    schema="raw",
+    table="olist_order_items",
+    source_columns=(
+        "order_id",
+        "order_item_id",
+        "product_id",
+        "seller_id",
+        "shipping_limit_date",
+        "price",
+        "freight_value",
+    ),
+    required_columns=(
+        "order_id",
+        "order_item_id",
+        "product_id",
+        "seller_id",
+        "shipping_limit_date",
+        "price",
+        "freight_value",
+    ),
+    primary_key=("order_id", "order_item_id"),
+)
+
+
+SOURCE_CONTRACTS = {
+    "mql": MQL_CONTRACT,
+    "closed-deals": CLOSED_DEALS_CONTRACT,
+    "sellers": SELLERS_CONTRACT,
+    "orders": ORDERS_CONTRACT,
+    "order-items": ORDER_ITEMS_CONTRACT,
+}

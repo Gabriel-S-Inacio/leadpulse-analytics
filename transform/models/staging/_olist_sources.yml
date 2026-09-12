@@ -9,3 +9,9 @@ sources:
         description: Historical static Kaggle MQL snapshot; no source freshness SLA applies.
       - name: olist_closed_deals
         description: Historical static Kaggle Closed Deals snapshot; no source freshness SLA applies.
+      - name: olist_sellers
+        description: Historical static Kaggle seller master snapshot; no source freshness SLA applies.
+      - name: olist_orders
+        description: Historical static Kaggle order snapshot; no source freshness SLA applies.
+      - name: olist_order_items
+        description: Historical static Kaggle order-item snapshot; no source freshness SLA applies.

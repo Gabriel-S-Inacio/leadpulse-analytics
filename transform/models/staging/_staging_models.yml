@@ -34,3 +34,58 @@ models:
           - unique
       - name: won_date
         description: Source won timestamp converted from raw text to TIMESTAMP.
+  - name: stg_olist_sellers
+    description: Technically normalized seller master records without dimensional enrichment.
+    columns:
+      - name: seller_id
+        description: Source seller identifier.
+        data_tests:
+          - not_null
+          - unique
+  - name: stg_olist_orders
+    description: Technically normalized order records without eligibility filtering.
+    columns:
+      - name: order_id
+        description: Source order identifier.
+        data_tests:
+          - not_null
+          - unique
+      - name: customer_id
+        description: Source customer identifier retained for order-level traceability.
+        data_tests:
+          - not_null
+      - name: order_status
+        description: Raw order status retained without business filtering.
+        data_tests:
+          - not_null
+  - name: stg_olist_order_items
+    description: Typed order-item records at source (order_id, order_item_id) grain.
+    columns:
+      - name: order_id
+        description: Source order identifier.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_olist_orders')
+                field: order_id
+      - name: order_item_id
+        description: Source item sequence within an order.
+        data_tests:
+          - not_null
+      - name: seller_id
+        description: Source seller responsible for the order item.
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_olist_sellers')
+                field: seller_id
+      - name: price
+        description: Source item price converted to NUMERIC; no GMV eligibility is applied.
+        data_tests:
+          - not_null
+      - name: freight_value
+        description: Source freight converted to NUMERIC and kept separate from price.
+        data_tests:
+          - not_null

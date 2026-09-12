@@ -2,7 +2,7 @@
 
 ## Purpose and boundary
 
-The MVP runs one PostgreSQL database through Docker Compose, loads source snapshots with Python, and transforms them with dbt. This foundation proves the MQL and Closed Deals funnel paths; it does not implement the remaining approved dimensions/facts, orchestration, dashboards, or synthetic spend.
+The MVP runs one PostgreSQL database through Docker Compose, loads source snapshots with Python, and transforms them with dbt. The implemented surface covers the MQL/Closed Deals funnel and the Sellers/Orders/Order Items commerce core through staging. It does not implement approved dimensions/facts, lifecycle logic, orchestration, dashboards, or synthetic spend.
 
 ## PostgreSQL schemas
 
@@ -12,7 +12,7 @@ The MVP runs one PostgreSQL database through Docker Compose, loads source snapsh
 | `staging` | Type normalization, consistent names, and technical source rules. |
 | `analytics` | Approved dimensional models and consumption-ready marts. |
 
-No `intermediate` schema is created because the first slice has no reusable multi-model transformation that justifies it.
+No `intermediate` schema is created because the implemented slices have no reusable multi-model transformation that justifies it.
 
 Schemas are bootstrapped by `docker/postgres/init/001_create_schemas.sql` through PostgreSQL's `docker-entrypoint-initdb.d` mechanism. This is the simplest reproducible option for a new local named volume; no migration framework is justified at this stage.
 
@@ -28,11 +28,11 @@ Raw relations use lowercase snake_case, retain the source entity name without th
 - `raw.olist_customers`
 - `raw.olist_order_payments`
 
-Only `raw.olist_marketing_qualified_leads` and `raw.olist_closed_deals` are implemented in the current funnel slices.
+Five raw relations are implemented: `raw.olist_marketing_qualified_leads`, `raw.olist_closed_deals`, `raw.olist_sellers`, `raw.olist_orders`, and `raw.olist_order_items`.
 
-## Funnel vertical slices
+## Implemented vertical slices
 
-The contract-driven loader preserves every declared source column at source shape. MQL retains its four source columns, while Closed Deals retains all 14 source columns. Each raw table adds only:
+The contract-driven loader preserves every declared source column at source shape. It supports Marketing Funnel (MQL and Closed Deals) and Commerce Core (Sellers, Orders, and Order Items) through one source-selecting CLI. Each raw table adds only:
 
 - `_loaded_at`: UTC timestamp of the successful load;
 - `_source_file`: source basename, never a personal path;
@@ -57,7 +57,10 @@ transform/
         ├── _olist_sources.yml
         ├── _staging_models.yml
         ├── stg_olist_closed_deals.sql
-        └── stg_olist_marketing_qualified_leads.sql
+        ├── stg_olist_marketing_qualified_leads.sql
+        ├── stg_olist_order_items.sql
+        ├── stg_olist_orders.sql
+        └── stg_olist_sellers.sql
 ```
 
 Source freshness is intentionally absent. The Olist file is a historical static snapshot without a production arrival SLA.
