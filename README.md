@@ -24,7 +24,9 @@ Fontes de marketing e CRM alimentarão uma camada de ingestão. Os dados brutos 
 
 ## Status
 
-**Analytics Foundation** — cinco fontes Olist e um cenário de Advertising Spend sintético percorrem geração/CSV → PostgreSQL raw → dbt staging. A camada analytics implementa `dim_date`, `dim_origin`, `dim_seller`, `fct_mql`, `fct_closed_deal`, `fct_order_item`, `fct_seller_lifecycle` e `fct_marketing_spend`. Todo custo e KPI dependente de spend é explicitamente `SYNTHETIC`, determinístico, não causal e não representa gasto observado da Olist. A camada de consumo permanece fora desta etapa.
+**Dashboard-ready semantic layer** — cinco fontes Olist e um cenário de Advertising Spend sintético percorrem geração/CSV → PostgreSQL raw → dbt staging. A camada analytics implementa as dimensões e facts aprovadas e publica quatro marts de consumo: aquisição, ativação, eficiência de marketing e desempenho downstream. Todo custo e KPI dependente de spend é explicitamente `SYNTHETIC`, determinístico, não causal e não representa gasto observado da Olist. O dashboard ainda não está implementado.
+
+Os marts disponíveis são `mart_acquisition_performance`, `mart_seller_activation`, `mart_marketing_efficiency` e `mart_downstream_performance`. Rates devem ser recalculados a partir dos numeradores e denominadores; cenários de spend e versões de lifecycle nunca devem ser misturados.
 
 ## Fontes planejadas para o MVP
 

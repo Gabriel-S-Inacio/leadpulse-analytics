@@ -281,9 +281,54 @@ Every published dataset must identify compatible source snapshots, rule/mapping 
 
 The implemented contract is `baseline_v1` with methodology `paid_media_daily_v1`, seed `20260913`, currency `BRL`, and exact `SYNTHETIC` classification. Its allowlist is `paid_search`, `display`, `social`, and `other_publicities`; each origin spans its own observed MQL first-contact minimum through maximum. Daily amounts use declared per-origin baselines, fixed month/weekday effects, and bounded hash-derived variation. The ignored generated CSV checksum is retained through raw metadata and `source_snapshot_id`.
 
+## Dashboard-ready semantic marts
+
+All four marts are rebuilt as tables for the local MVP. Their ratios are convenience outputs, not additive measures; overall ratios must always be recalculated from the exposed numerators and denominators.
+
+### mart_acquisition_performance
+
+- grain is `(cohort_month, origin_key)`, where the cohort is always MQL `first_contact_date` month;
+- MQLs, Closed Deals, and Acquired Sellers reconcile to their facts without row loss or fanout;
+- the Closed Deal numerator inherits the MQL contact cohort rather than switching to `won_date`;
+- conversion is `acquired_sellers / mqls`, with a zero denominator producing NULL.
+
+### mart_seller_activation
+
+- grain is `(cohort_month, origin_key, observation_cutoff_timestamp, lifecycle_rule_version, source_snapshot_id)`;
+- the implemented mart selects the most recent deterministic `seller_activation_v1` tuple and exposes the full tuple on every row;
+- mature and activated counts reconcile to that exact lifecycle version;
+- time-to-first-Order averages and medians include only mature `is_activated_90d = TRUE` sellers and must not be summed across groups;
+- 90-day GMV and seller/Order participations are independently aggregated before division by Activated Sellers.
+
+### mart_marketing_efficiency
+
+- grain is `(period, origin_key, scenario_id, methodology_version, generation_seed, currency, lifecycle version tuple)`;
+- spend, MQL, acquisition, and 90-day GMV components are aggregated independently before joining;
+- coverage boundaries preserve the source-origin generation window in partial first/last months;
+- `data_classification = 'SYNTHETIC'`; CPL, Seller Acquisition Cost, and GMV ROAS inherit that classification and remain non-causal;
+- every query must select one scenario/methodology/seed/currency and one lifecycle tuple.
+
+### mart_downstream_performance
+
+- grain is `(purchase_month, origin_key, seller_key, order_id)` rather than a lossy month/origin aggregate;
+- `eligible_gmv` is additive and reconciles to item-grain eligible GMV;
+- seller/Order participation is additive at this grain;
+- Orders are non-additive across sellers/origins, so global and cross-origin counts use `COUNT(DISTINCT order_id)`;
+- retaining the natural Order identifier prevents the known multi-seller Orders from being silently double-counted.
+
+### Mart quality and fanout rules
+
+- each complete mart grain is unique and all governed keys resolve;
+- rates remain between 0 and 1 where applicable, monetary values remain non-negative, and all denominators are exposed;
+- acquisition MQL and seller totals recompose exactly to their source facts;
+- activation measures recompose only after selecting one complete lifecycle version;
+- marketing spend recomposes per scenario tuple and is never joined directly to seller- or item-grain facts;
+- downstream GMV recomposes to `fct_order_item`, while global Orders use distinct `order_id`;
+- no dashboard query may sum precomputed rates, mix spend scenarios, or mix lifecycle snapshots.
+
 ## KPI feasibility
 
-`SUPPORTED` means the logical schema provides a defensible computation path. It does not claim that the future synthetic fact has already been populated.
+`SUPPORTED` means the logical schema and implemented analytics layer provide a defensible computation path. It does not imply that a dashboard or production orchestration is implemented.
 
 | KPI | Status | Source tables | Caveats |
 | --- | --- | --- | --- |
@@ -312,6 +357,6 @@ The implemented contract is `baseline_v1` with methodology `paid_media_daily_v1`
 - Refund and chargeback outcomes are incomplete, so delivered item GMV remains a marketplace sales-value proxy.
 - Distinct Order participation is non-additive across sellers/origins; a future governed aggregate may optimize it, but does not change this contract.
 
-## Physical implementation deferred
+## Implementation boundary
 
-No decision here selects PostgreSQL data types or schemas, executable constraints, indexes, partitions, dbt behavior, incremental strategy, late-arriving-data handling, or orchestration.
+These logical and executable dbt contracts do not define orchestration, incremental retention, late-arriving-data handling, dashboard presentation, or production indexing/partitioning. The current physical choices are recorded in `docs/architecture/physical-data-platform.md`.

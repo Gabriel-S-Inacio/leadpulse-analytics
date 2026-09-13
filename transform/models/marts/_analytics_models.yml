@@ -345,3 +345,179 @@ models:
       - name: eligible_gmv_amount
         data_tests:
           - not_null
+
+  - name: mart_acquisition_performance
+    description: >-
+      Contact-month and governed-origin acquisition funnel with additive
+      numerators and a non-additive conversion rate.
+    columns:
+      - name: cohort_month_key
+        data_tests:
+          - not_null
+      - name: cohort_month
+        data_tests:
+          - not_null
+      - name: origin_key
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_origin')
+                field: origin_key
+      - name: mqls
+        data_tests:
+          - not_null
+      - name: closed_deals
+        data_tests:
+          - not_null
+      - name: acquired_sellers
+        data_tests:
+          - not_null
+
+  - name: mart_seller_activation
+    description: >-
+      Won-month and origin activation performance for one explicitly selected
+      seller lifecycle version.
+    columns:
+      - name: cohort_month_key
+        data_tests:
+          - not_null
+      - name: cohort_month
+        data_tests:
+          - not_null
+      - name: origin_key
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_origin')
+                field: origin_key
+      - name: observation_cutoff_timestamp
+        data_tests:
+          - not_null
+      - name: lifecycle_rule_version
+        data_tests:
+          - not_null
+      - name: source_snapshot_id
+        data_tests:
+          - not_null
+      - name: acquired_sellers_mature
+        data_tests:
+          - not_null
+      - name: activated_sellers_90d
+        data_tests:
+          - not_null
+      - name: gmv_90d
+        data_tests:
+          - not_null
+      - name: orders_90d
+        data_tests:
+          - not_null
+
+  - name: mart_marketing_efficiency
+    description: >-
+      Monthly paid-origin synthetic spend, acquisition, and mature 90-day GMV
+      aggregated independently before joining.
+    columns:
+      - name: period_key
+        data_tests:
+          - not_null
+      - name: period
+        data_tests:
+          - not_null
+      - name: coverage_start_date
+        data_tests:
+          - not_null
+      - name: coverage_end_date
+        data_tests:
+          - not_null
+      - name: origin_key
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_origin')
+                field: origin_key
+      - name: scenario_id
+        data_tests:
+          - not_null
+      - name: methodology_version
+        data_tests:
+          - not_null
+      - name: generation_seed
+        data_tests:
+          - not_null
+      - name: currency
+        data_tests:
+          - not_null
+      - name: data_classification
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['SYNTHETIC']
+      - name: observation_cutoff_timestamp
+        data_tests:
+          - not_null
+      - name: lifecycle_rule_version
+        data_tests:
+          - not_null
+      - name: lifecycle_source_snapshot_id
+        data_tests:
+          - not_null
+      - name: synthetic_marketing_spend
+        data_tests:
+          - not_null
+      - name: mqls
+        data_tests:
+          - not_null
+      - name: acquired_sellers
+        data_tests:
+          - not_null
+      - name: eligible_gmv_90d
+        data_tests:
+          - not_null
+
+  - name: mart_downstream_performance
+    description: >-
+      Purchase-month, origin, seller, and Order bridge preserving globally
+      distinct Orders while aggregating item-grain eligible GMV safely.
+    columns:
+      - name: purchase_month_key
+        data_tests:
+          - not_null
+      - name: purchase_month
+        data_tests:
+          - not_null
+      - name: origin_key
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_origin')
+                field: origin_key
+      - name: seller_key
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_seller')
+                field: seller_key
+      - name: order_id
+        data_tests:
+          - not_null
+      - name: orders
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [1]
+      - name: seller_order_participations
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [1]
+      - name: eligible_gmv
+        data_tests:
+          - not_null
