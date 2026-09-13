@@ -81,6 +81,12 @@ The empirical cutoff is the maximum observed Order purchase timestamp, `2018-10-
 
 Within the mature denominator, no qualifying event means **not activated in the linked public snapshots**, not proof that the seller never transacted in reality. The 462 ClosedDeal sellers absent from the e-commerce seller snapshot remain a material coverage limitation and must be disclosed with the KPI.
 
+## Governed Closed Deal temporal exception
+
+The MVP preserves one observed Closed Deal whose `won_date` is two calendar days before its linked MQL `first_contact_date`. It is classified as `INVALID_SEQUENCE` rather than corrected, excluded, or quarantined. The row remains valid evidence that a Closed Deal occurred and contributes to Closed Deals, Acquired Sellers, and MQL-to-Acquired-Seller conversion.
+
+Sequence-dependent lifecycle metrics must require `temporal_quality_status = 'VALID'`. Time to first order, post-acquisition activation, and activation within 90 days will enforce that policy when `fct_seller_lifecycle` is implemented; no lifecycle result is produced in this stage.
+
 ## Acquisition conversion
 
 **MQL to Acquired Seller Conversion Rate** is a first-contact cohort metric:

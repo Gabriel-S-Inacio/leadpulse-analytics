@@ -150,11 +150,12 @@ Every published dataset must identify compatible source snapshots, rule/mapping 
 
 **NOT NULL**
 
-- all contracted columns are required for accepted rows.
+- all contracted columns are required for accepted rows, including `temporal_quality_status`.
 
 **ACCEPTED VALUES**
 
 - `closed_deal_count = 1` and `acquired_seller_count = 1`.
+- `temporal_quality_status IN ('VALID', 'INVALID_SEQUENCE')`.
 
 **REFERENTIAL INTEGRITY**
 
@@ -166,7 +167,9 @@ Every published dataset must identify compatible source snapshots, rule/mapping 
 
 - `origin_key` and `contact_date_key` exactly match the linked MQL.
 - `won_date_key` matches the date portion of `won_timestamp`.
-- `won_timestamp` is on or after the linked first-contact calendar date; the source has no contact time-of-day for a stricter timestamp comparison.
+- `temporal_quality_status = 'VALID'` when `won_timestamp` is on or after the linked first-contact calendar date; otherwise it is `INVALID_SEQUENCE`.
+- the governed MVP exception is preserved as `INVALID_SEQUENCE` without source correction, exclusion, or quarantine; it still contributes exactly 1 to both acquisition occurrence measures.
+- new, removed, or changed temporal exceptions fail the governed exception contract rather than passing silently.
 - a ClosedDeal is an acquisition event and is never treated as a marketplace Order.
 
 ### fct_seller_lifecycle

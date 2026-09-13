@@ -24,7 +24,7 @@ Fontes de marketing e CRM alimentarão uma camada de ingestão. Os dados brutos 
 
 ## Status
 
-**Data Platform Foundation** — os slices executáveis validam MQL, Closed Deals, Sellers, Orders e Order Items de CSV → PostgreSQL raw → dbt staging. As tabelas dimensionais analíticas continuam fora desta etapa.
+**Analytics Foundation** — cinco fontes percorrem CSV → PostgreSQL raw → dbt staging. A camada analytics implementa `dim_date`, `dim_origin`, `dim_seller`, `fct_mql`, `fct_closed_deal` e `fct_order_item`; lifecycle, spend sintético e consumo permanecem fora desta etapa.
 
 ## Fontes planejadas para o MVP
 
@@ -86,8 +86,8 @@ python -m leadpulse.ingestion sellers
 python -m leadpulse.ingestion orders
 python -m leadpulse.ingestion order-items
 dbt debug --project-dir transform --profiles-dir transform
-dbt run --project-dir transform --profiles-dir transform --select path:models/staging
-dbt test --project-dir transform --profiles-dir transform --select path:models/staging
+dbt run --project-dir transform --profiles-dir transform
+dbt test --project-dir transform --profiles-dir transform
 ```
 
 Valide os testes Python e, opcionalmente, as contagens no PostgreSQL:

@@ -155,10 +155,13 @@ No timestamp is invented: the public MQL source supplies `first_contact_date`, n
 | contact_date_key | MQL cohort date inherited from the MQL. | ANALYTICAL_KEY | NO | MQL relationship | Lookup by `mql_id`. | Must equal the related MQL contact date. |
 | won_date_key | Calendar date of successful commercial close. | ANALYTICAL_KEY | NO | `won_date` | Date portion resolved through `dim_date`. | Referential integrity required. |
 | won_timestamp | Exact observed successful-close timestamp. | TIMESTAMP | NO | `won_date` | Parsed without timezone invention. | Must not precede the start of `contact_date_key`; timezone remains source-naive. |
+| temporal_quality_status | Governed contact-to-close sequence quality. | STRING | NO | MQL and Closed Deals | `VALID` when won date is on/after contact date; otherwise `INVALID_SEQUENCE`. | Does not alter acquisition measures; future sequence-dependent lifecycle metrics require `VALID`. |
 | closed_deal_count | Additive successful-close indicator. | INTEGER | NO | Derived | Constant `1`. | Exactly 1. |
 | acquired_seller_count | Additive acquired-seller indicator under validated 1:1 mapping. | INTEGER | NO | Derived | Constant `1` while `seller_id` remains unique. | Exactly 1; load must fail if uniqueness contract drifts. |
 | source_snapshot_id | Governed source-copy identifier. | STRING | NO | Acquisition metadata | Assigned to compatible Funnel snapshot. | Nonblank and reproducible. |
 | source_file_name | Non-personal source filename. | STRING | NO | Acquisition metadata | Constant for Closed Deals source. | No personal path or credential. |
+
+The observed MVP snapshot contains one governed `INVALID_SEQUENCE` row. Its source values remain unchanged and it continues contributing to acquisition occurrence measures; it is not silently corrected, dropped, or treated as lifecycle-ready.
 
 `business_segment`, `lead_type`, `lead_behaviour_profile`, and `business_type` are retained in raw lineage but deferred from the MVP analytical surface. They are event-time descriptors without a prioritized question or stable dimensional contract.
 

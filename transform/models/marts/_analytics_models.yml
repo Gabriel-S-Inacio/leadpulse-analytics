@@ -1,0 +1,211 @@
+version: 2
+
+models:
+  - name: dim_date
+    description: Conformed Gregorian calendar with governed technical date members.
+    columns:
+      - name: date_key
+        data_tests:
+          - not_null
+          - unique
+      - name: calendar_date
+        data_tests:
+          - not_null:
+              config:
+                where: "date_classification = 'CALENDAR'"
+          - unique:
+              config:
+                where: "date_classification = 'CALENDAR'"
+      - name: date_classification
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['CALENDAR', 'UNKNOWN', 'NOT_OBSERVED', 'NOT_APPLICABLE']
+
+  - name: dim_origin
+    description: Type 1 governed origin mapping with distinct missing and N/A members.
+    columns:
+      - name: origin_key
+        data_tests:
+          - not_null
+          - unique
+      - name: origin_member_code
+        data_tests:
+          - not_null
+          - unique
+      - name: normalized_channel
+        data_tests:
+          - not_null
+      - name: classification
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - OBSERVED
+                  - EXPLICIT_UNKNOWN
+                  - MISSING
+                  - UNRECOGNIZED
+                  - NOT_APPLICABLE
+      - name: mapping_version
+        data_tests:
+          - not_null
+
+  - name: dim_seller
+    description: Conformed union of funnel and e-commerce seller identities.
+    columns:
+      - name: seller_key
+        data_tests:
+          - not_null
+          - unique
+      - name: seller_id
+        data_tests:
+          - not_null
+          - unique
+      - name: seller_source_presence
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['funnel_only', 'ecommerce_only', 'both']
+
+  - name: fct_mql
+    description: One row per first observed marketing-qualified lead.
+    columns:
+      - name: mql_id
+        data_tests:
+          - not_null
+          - unique
+      - name: contact_date_key
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_key
+      - name: origin_key
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_origin')
+                field: origin_key
+      - name: mql_count
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [1]
+
+  - name: fct_closed_deal
+    description: One row per converted MQL with inherited acquisition context.
+    columns:
+      - name: mql_id
+        data_tests:
+          - not_null
+          - unique
+          - relationships:
+              arguments:
+                to: ref('fct_mql')
+                field: mql_id
+      - name: seller_id
+        data_tests:
+          - not_null
+          - unique
+      - name: seller_key
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_seller')
+                field: seller_key
+      - name: origin_key
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_origin')
+                field: origin_key
+      - name: contact_date_key
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_key
+      - name: won_date_key
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_key
+      - name: temporal_quality_status
+        description: Governed quality of contact-to-close temporal ordering.
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['VALID', 'INVALID_SEQUENCE']
+      - name: closed_deal_count
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [1]
+      - name: acquired_seller_count
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [1]
+
+  - name: fct_order_item
+    description: Central transaction fact at source order-item grain.
+    columns:
+      - name: order_id
+        data_tests:
+          - not_null
+      - name: order_item_id
+        data_tests:
+          - not_null
+      - name: seller_key
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_seller')
+                field: seller_key
+      - name: origin_key
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_origin')
+                field: origin_key
+      - name: purchase_date_key
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_key
+      - name: seller_won_date_key
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_key
+      - name: item_price
+        data_tests:
+          - not_null
+      - name: freight_value
+        data_tests:
+          - not_null
+      - name: order_item_count
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [1]
+      - name: eligible_gmv_amount
+        data_tests:
+          - not_null
