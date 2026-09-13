@@ -10,7 +10,6 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-
 MODULE_PATH = Path(__file__).resolve().parents[1] / "scripts" / "acquire_olist_data.py"
 SPEC = importlib.util.spec_from_file_location("acquire_olist_data", MODULE_PATH)
 if SPEC is None or SPEC.loader is None:

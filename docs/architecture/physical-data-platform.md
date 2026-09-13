@@ -2,7 +2,7 @@
 
 ## Purpose and boundary
 
-The MVP runs one PostgreSQL database through Docker Compose, loads source snapshots with Python, and transforms them with dbt. The implemented surface covers the MQL/Closed Deals funnel and the Sellers/Orders/Order Items commerce core through staging. It does not implement approved dimensions/facts, lifecycle logic, orchestration, dashboards, or synthetic spend.
+The MVP runs one PostgreSQL database through Docker Compose, loads source snapshots with Python, and transforms them with dbt. The implemented surface covers the MQL/Closed Deals funnel, the Sellers/Orders/Order Items commerce core, core dimensions/facts, and seller lifecycle. It does not implement orchestration, dashboards, or synthetic spend.
 
 ## PostgreSQL schemas
 
@@ -46,7 +46,9 @@ The partially implemented analytics layer materializes `dim_date`, `dim_origin`,
 
 Dimension keys are deterministic: calendar dates use `YYYYMMDD` integers with reserved negative technical keys, while origin and seller members use namespaced content hashes. `dim_origin` distinguishes missing, explicit unknown, unrecognized, and not-applicable states. `dim_seller` is the governed union of funnel and e-commerce sellers, preserving funnel-only identities without invented geography.
 
-`fct_order_item` remains at `(order_id, order_item_id)` grain. Eligible GMV is item `price` only for delivered, acquired-seller items purchased strictly after `won_timestamp`; all other observed items contribute zero. Freight and payment values are excluded, and Order counts require distinct `order_id` rather than summed item rows. Lifecycle, synthetic spend, dashboards, and other consumption models are not implemented.
+`fct_order_item` remains at `(order_id, order_item_id)` grain. Eligible GMV is item `price` only for delivered, acquired-seller items purchased strictly after `won_timestamp`; all other observed items contribute zero. Freight and payment values are excluded, and Order counts require distinct `order_id` rather than summed item rows. Synthetic spend, dashboards, and other consumption models are not implemented.
+
+`fct_seller_lifecycle` is a full-rebuild table at acquired seller × observation cutoff × lifecycle rule version × source snapshot grain. The current cutoff is derived from the maximum governed Order purchase timestamp, the rule version is `seller_activation_v1`, and the source snapshot ID hashes the compatible acquisition and commerce provenance IDs. The current local rebuild publishes one version; future retained snapshots may coexist only under the complete logical key, and consumers must select one version tuple before aggregation.
 
 One preserved Closed Deals source row has `won_date` two calendar days before its linked MQL `first_contact_date`. `fct_closed_deal.temporal_quality_status` classifies it as `INVALID_SEQUENCE`; all other rows are `VALID`. A governed dbt exception test fingerprints the known anonymized identifiers and dates, so any new, removed, or changed exception fails without inventing a corrected timestamp or dropping one of the 842 source rows.
 

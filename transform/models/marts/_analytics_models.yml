@@ -158,6 +158,82 @@ models:
               arguments:
                 values: [1]
 
+  - name: fct_seller_lifecycle
+    description: Versioned acquired-seller lifecycle evaluation at a governed cutoff.
+    columns:
+      - name: seller_key
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_seller')
+                field: seller_key
+      - name: origin_key
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_origin')
+                field: origin_key
+      - name: won_date_key
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_key
+      - name: observation_cutoff_date_key
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_key
+      - name: observation_cutoff_timestamp
+        data_tests:
+          - not_null
+      - name: lifecycle_rule_version
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['seller_activation_v1']
+      - name: source_snapshot_id
+        data_tests:
+          - not_null
+      - name: temporal_quality_status
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['VALID', 'INVALID_SEQUENCE']
+      - name: first_eligible_order_id
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('fct_order_item')
+                field: order_id
+      - name: activation_date_key
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_key
+      - name: is_mature_90d
+        data_tests:
+          - not_null
+      - name: mature_seller_count
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [0, 1]
+      - name: activated_seller_count
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [0, 1]
+
   - name: fct_order_item
     description: Central transaction fact at source order-item grain.
     columns:

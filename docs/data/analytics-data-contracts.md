@@ -181,14 +181,15 @@ Every published dataset must identify compatible source snapshots, rule/mapping 
 
 **NOT NULL**
 
-- seller, origin, won date/timestamp, cutoff date/timestamp, rule version, source snapshot, maturity flag, and count indicators are required.
-- `is_activated_90d` is intentionally nullable for an immature seller with no activation yet observed.
+- seller, origin, won date/timestamp, cutoff date/timestamp, rule version, source snapshot, temporal quality, maturity flag, and count indicators are required.
+- `is_activated_90d` is intentionally nullable for an immature seller or invalid temporal sequence, even if an early event is already observed for an immature cohort.
 - activation event fields and duration are nullable only under the documented state rules.
 
 **ACCEPTED VALUES**
 
 - `mature_seller_count` and `activated_seller_count` are each 0 or 1.
-- present `time_to_first_order_days` is greater than 0 and no more than 90.
+- present `time_to_first_order_days` is greater than 0; it may exceed 90 because the first eligible post-win event is retained separately from 90-day activation classification.
+- current `lifecycle_rule_version = 'seller_activation_v1'`, covering delivered eligibility, strict post-win ordering, the 90-day activation window, and required valid temporal quality.
 
 **REFERENTIAL INTEGRITY**
 
@@ -198,14 +199,16 @@ Every published dataset must identify compatible source snapshots, rule/mapping 
 
 **CONDITIONAL CONSISTENCY**
 
-- `is_mature_90d = (observation_cutoff_timestamp >= won_timestamp + 90 days)`.
+- `is_mature_90d = (temporal_quality_status = 'VALID' AND observation_cutoff_timestamp >= won_timestamp + 90 days)`.
 - mature seller count is 1 iff `is_mature_90d` is TRUE.
-- `is_activated_90d = TRUE` requires activation timestamp/date, first eligible Order ID/timestamp, and duration.
-- `is_activated_90d = FALSE` requires maturity and NULL activation event fields.
-- immature plus no observed qualifying event uses NULL activation status, not FALSE.
+- `is_activated_90d = TRUE` requires activation timestamp/date, first eligible Order ID, and duration; `activation_timestamp` is the timestamp of that Order event.
+- `is_activated_90d = FALSE` requires a valid mature cohort and no first eligible Order within 90 days; a later first event may remain populated.
+- immature or invalid-temporal rows use NULL activation status, not FALSE.
 - activated seller count is 1 iff the row is both mature and activated; otherwise it is 0.
-- activation timestamp is strictly after won timestamp, no more than 90 days later, and no later than cutoff.
+- activation timestamp is the first eligible delivered Order strictly after won timestamp and no later than cutoff; it may occur after 90 days.
 - first eligible Order uses deterministic purchase-timestamp then order-id tie-breaking and must be delivered.
+- `INVALID_SEQUENCE` rows remain in the snapshot with maturity FALSE, activation status/duration/event fields NULL, and the `UNKNOWN` activation date member.
+- downstream aggregations must select exactly one `observation_cutoff_timestamp + lifecycle_rule_version + source_snapshot_id` version before summing lifecycle measures.
 - the same seller may occur across versions, but aggregations must select one version.
 
 ### fct_order_item

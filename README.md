@@ -24,7 +24,7 @@ Fontes de marketing e CRM alimentarão uma camada de ingestão. Os dados brutos 
 
 ## Status
 
-**Analytics Foundation** — cinco fontes percorrem CSV → PostgreSQL raw → dbt staging. A camada analytics implementa `dim_date`, `dim_origin`, `dim_seller`, `fct_mql`, `fct_closed_deal` e `fct_order_item`; lifecycle, spend sintético e consumo permanecem fora desta etapa.
+**Analytics Foundation** — cinco fontes percorrem CSV → PostgreSQL raw → dbt staging. A camada analytics implementa `dim_date`, `dim_origin`, `dim_seller`, `fct_mql`, `fct_closed_deal`, `fct_order_item` e o snapshot versionado `fct_seller_lifecycle`; spend sintético e consumo permanecem fora desta etapa.
 
 ## Fontes planejadas para o MVP
 
