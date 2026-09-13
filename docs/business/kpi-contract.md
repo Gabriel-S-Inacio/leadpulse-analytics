@@ -147,7 +147,7 @@ Requires validated seller_id and mql_id cardinality and does not prove the selle
 What advertising cost is assigned to a controlled analytical scenario?
 
 ### DEFINITION
-Sum of generated spend observations under one disclosed scenario and methodology version.
+Sum of generated spend observations under one disclosed scenario and methodology version. The implemented MVP scenario is `baseline_v1` / `paid_media_daily_v1` / seed `20260913` / `BRL`, always classified `SYNTHETIC`.
 
 ### FORMULA
 MarketingSpend(P, d, s) = SUM(spend_amount where spend_date is in P, origin is in d, and scenario is s)
@@ -558,34 +558,34 @@ Report count, minimum, P25, median, P75, P90, P95, and maximum; do not impute no
 Under a controlled spend scenario, how much attributed downstream marketplace value corresponds to each generated spend unit?
 
 ### DEFINITION
-Attributed downstream GMV proxy divided by compatible synthetic MarketingSpend. The name must remain GMV ROAS to prevent interpretation as Olist revenue return or accounting return.
+90-day attributed downstream GMV proxy for a valid seller-acquisition cohort divided by compatible synthetic MarketingSpend. The name must remain GMV ROAS to prevent interpretation as Olist revenue return or accounting return.
 
 ### FORMULA
-ScenarioGMVROAS(P, d, s) = GMV(P, d) / MarketingSpend(P, d, s)
+ScenarioGMVROAS90d(P, d, s) = CohortGMV90d(P, d) / MarketingSpend(P, d, s)
 
 ### NUMERATOR
-Eligible OrderItem price in P supplied by AcquiredSellers whose Lead origin maps to Channel d.
+Eligible delivered OrderItem price in `(won_date, won_date + 90 days]` from temporally valid, 90-day-mature AcquiredSellers whose `won_date` is in P and whose Lead origin maps to Channel d.
 
 ### DENOMINATOR
 Compatible controlled synthetic MarketingSpend for Channel d, P, and scenario s.
 
 ### GRAIN
-source_origin/Channel/month and overall/scenario period.
+source_origin/Channel/acquisition-cohort period and overall/scenario period.
 
 ### TIME BASIS
-Order purchase timestamp for GMV and generated spend date for cost, both in P.
+Generated spend date defines P for cost; `won_date` places the seller in acquisition cohort P; Order purchase timestamp must be within that seller's first 90 post-acquisition days.
 
 ### FILTER BEHAVIOR
-Requires compatible source_origin/Channel mapping and an explicit synthetic scenario. Campaign filtering is unavailable.
+Requires compatible source_origin/Channel mapping, a complete 90-day seller cohort, and an explicit synthetic scenario. Spend and GMV facts are aggregated separately before division. Campaign filtering is unavailable.
 
 ### ZERO / NULL BEHAVIOR
-Positive complete spend with zero GMV returns 0. Zero/missing/incompatible spend or incomplete GMV returns null.
+Positive complete spend with zero eligible 90-day cohort GMV returns 0. Zero/missing/incompatible spend or an incomplete 90-day cohort returns null.
 
 ### ATTRIBUTION DEPENDENCY
 YES.
 
 ### KNOWN LIMITATIONS
-Not causal ROAS, corporate revenue return, or profit. It combines real downstream marketplace item value with generated cost and must retain synthetic-scenario labeling.
+Not causal ROAS, corporate revenue return, or profit. It combines real downstream marketplace item value with generated cost, excludes GMV after day 90, and must retain synthetic-scenario labeling.
 
 ## NOT ACTIVE / REMOVED FROM MVP CONTRACT
 

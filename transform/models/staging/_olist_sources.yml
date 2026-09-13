@@ -15,3 +15,10 @@ sources:
         description: Historical static Kaggle order snapshot; no source freshness SLA applies.
       - name: olist_order_items
         description: Historical static Kaggle order-item snapshot; no source freshness SLA applies.
+
+  - name: synthetic_raw
+    description: Deterministic LeadPulse-owned synthetic inputs, never observed Olist data.
+    schema: raw
+    tables:
+      - name: synthetic_marketing_spend
+        description: Reproducible non-causal paid-media scenario; no freshness SLA applies.

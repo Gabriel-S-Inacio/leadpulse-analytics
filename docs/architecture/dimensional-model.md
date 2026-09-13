@@ -16,8 +16,8 @@ The design must answer the prioritized acquisition, activation, and downstream-p
 6. What is GMV per Activated Seller?
 7. How many Orders are generated per Activated Seller?
 8. How long do sellers take to activate?
-9. How much future controlled synthetic spend is associated with each origin?
-10. What are future scenario Seller Acquisition Cost and GMV ROAS by origin?
+9. How much controlled synthetic spend is associated with each eligible paid origin?
+10. What are scenario Seller Acquisition Cost and GMV ROAS by origin?
 
 ## Business process grains
 
@@ -49,7 +49,7 @@ GMV and seller assignment exist at Order Item grain. Preserving this grain preve
 
 **Chosen grain:** one row per `(spend_date, source_origin, scenario_id)`.
 
-This is the frozen future synthetic-source grain. `source_origin` aligns with outcomes through `dim_origin`, and `scenario_id` prevents different synthetic scenarios from being summed together. No rows exist until deterministic generation is separately authorized.
+This is the frozen synthetic-source grain. `source_origin` aligns with outcomes through `dim_origin`, and `scenario_id` prevents different synthetic scenarios from being summed together. The implemented baseline is generated deterministically and remains explicitly non-causal.
 
 ## Fact model
 
@@ -159,7 +159,7 @@ This is the frozen future synthetic-source grain. `source_origin` aligns with ou
 
 ### fct_marketing_spend
 
-**PURPOSE:** support future, explicitly synthetic CPL, Seller Acquisition Cost, and GMV ROAS scenarios at a compatible origin/date grain.
+**PURPOSE:** support explicitly synthetic CPL, Seller Acquisition Cost, and GMV ROAS scenarios at a compatible origin/date grain.
 
 **GRAIN:** one row per `(spend_date, source_origin, scenario_id)`.
 
@@ -175,13 +175,13 @@ This is the frozen future synthetic-source grain. `source_origin` aligns with ou
 
 **ADDITIVITY:** spend is additive across dates and origins only within the same scenario, methodology version, and currency. It is non-additive across alternative scenarios.
 
-**SOURCE:** future deterministic LeadPulse-generated source; no current records.
+**SOURCE:** deterministic LeadPulse-generated source derived only from governed MQL origin/date coverage and declared parameters.
 
 **BUSINESS RULES:** non-negative BRL scenario values, frozen origin mapping, no Campaign, deterministic seed, explicit labeling, and no downstream-outcome leakage.
 
 **KNOWN RISKS:** synthetic cost cannot be represented as observed Olist performance; mixing scenarios or currencies produces invalid totals.
 
-**MVP STATUS:** INCLUDE in the conceptual model; population is deferred.
+**MVP STATUS:** INCLUDE; the deterministic baseline scenario is implemented.
 
 ### fct_order
 
@@ -385,7 +385,7 @@ One `dim_date` is role-played; separate physical date dimensions are not designe
 | purchase_date_key | Order Item event; lifecycle activation milestone source |
 | activation_date_key | Nullable first eligible Order date on seller lifecycle |
 | observation_cutoff_date_key | Lifecycle maturity evaluation |
-| spend_date_key | Future synthetic spend event |
+| spend_date_key | Synthetic spend event |
 
 Exact timestamps remain on event/lifecycle facts where ordering or duration is required; a date key does not replace time-of-day semantics.
 

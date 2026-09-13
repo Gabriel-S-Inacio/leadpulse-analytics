@@ -24,7 +24,7 @@ Fontes de marketing e CRM alimentarão uma camada de ingestão. Os dados brutos 
 
 ## Status
 
-**Analytics Foundation** — cinco fontes percorrem CSV → PostgreSQL raw → dbt staging. A camada analytics implementa `dim_date`, `dim_origin`, `dim_seller`, `fct_mql`, `fct_closed_deal`, `fct_order_item` e o snapshot versionado `fct_seller_lifecycle`; spend sintético e consumo permanecem fora desta etapa.
+**Analytics Foundation** — cinco fontes Olist e um cenário de Advertising Spend sintético percorrem geração/CSV → PostgreSQL raw → dbt staging. A camada analytics implementa `dim_date`, `dim_origin`, `dim_seller`, `fct_mql`, `fct_closed_deal`, `fct_order_item`, `fct_seller_lifecycle` e `fct_marketing_spend`. Todo custo e KPI dependente de spend é explicitamente `SYNTHETIC`, determinístico, não causal e não representa gasto observado da Olist. A camada de consumo permanece fora desta etapa.
 
 ## Fontes planejadas para o MVP
 
@@ -85,6 +85,8 @@ python -m leadpulse.ingestion closed-deals
 python -m leadpulse.ingestion sellers
 python -m leadpulse.ingestion orders
 python -m leadpulse.ingestion order-items
+python -m leadpulse.synthetic
+python -m leadpulse.ingestion synthetic-spend
 dbt debug --project-dir transform --profiles-dir transform
 dbt run --project-dir transform --profiles-dir transform
 dbt test --project-dir transform --profiles-dir transform
@@ -99,6 +101,7 @@ docker compose exec -T postgres psql -U $env:POSTGRES_USER -d $env:POSTGRES_DB -
 docker compose exec -T postgres psql -U $env:POSTGRES_USER -d $env:POSTGRES_DB -c "SELECT COUNT(*) FROM raw.olist_sellers;"
 docker compose exec -T postgres psql -U $env:POSTGRES_USER -d $env:POSTGRES_DB -c "SELECT COUNT(*) FROM raw.olist_orders;"
 docker compose exec -T postgres psql -U $env:POSTGRES_USER -d $env:POSTGRES_DB -c "SELECT COUNT(*) FROM raw.olist_order_items;"
+docker compose exec -T postgres psql -U $env:POSTGRES_USER -d $env:POSTGRES_DB -c "SELECT COUNT(*) FROM raw.synthetic_marketing_spend;"
 docker compose exec -T postgres psql -U $env:POSTGRES_USER -d $env:POSTGRES_DB -c "SELECT COUNT(*) FROM staging.stg_olist_marketing_qualified_leads;"
 docker compose exec -T postgres psql -U $env:POSTGRES_USER -d $env:POSTGRES_DB -c "SELECT COUNT(*) FROM staging.stg_olist_closed_deals;"
 ```

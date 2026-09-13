@@ -163,10 +163,40 @@ ORDER_ITEMS_CONTRACT = RawSnapshotContract(
 )
 
 
+SYNTHETIC_MARKETING_SPEND_CONTRACT = RawSnapshotContract(
+    name="synthetic marketing spend",
+    default_source=Path("data/generated/synthetic_marketing_spend.csv"),
+    schema="raw",
+    table="synthetic_marketing_spend",
+    source_columns=(
+        "spend_date",
+        "source_origin",
+        "scenario_id",
+        "methodology_version",
+        "generation_seed",
+        "currency",
+        "spend_amount",
+        "data_classification",
+    ),
+    required_columns=(
+        "spend_date",
+        "source_origin",
+        "scenario_id",
+        "methodology_version",
+        "generation_seed",
+        "currency",
+        "spend_amount",
+        "data_classification",
+    ),
+    primary_key=("spend_date", "source_origin", "scenario_id"),
+)
+
+
 SOURCE_CONTRACTS = {
     "mql": MQL_CONTRACT,
     "closed-deals": CLOSED_DEALS_CONTRACT,
     "sellers": SELLERS_CONTRACT,
     "orders": ORDERS_CONTRACT,
     "order-items": ORDER_ITEMS_CONTRACT,
+    "synthetic-spend": SYNTHETIC_MARKETING_SPEND_CONTRACT,
 }

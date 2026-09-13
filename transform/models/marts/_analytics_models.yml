@@ -234,6 +234,66 @@ models:
               arguments:
                 values: [0, 1]
 
+  - name: fct_marketing_spend
+    description: Explicitly synthetic non-causal paid-media spend at origin-day-scenario grain.
+    columns:
+      - name: spend_date_key
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_key
+      - name: origin_key
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_origin')
+                field: origin_key
+      - name: source_origin
+        data_tests:
+          - not_null
+      - name: scenario_id
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['baseline_v1']
+      - name: methodology_version
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['paid_media_daily_v1']
+      - name: generation_seed
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [20260913]
+      - name: currency
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['BRL']
+      - name: spend_amount
+        data_tests:
+          - not_null
+      - name: data_classification
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['SYNTHETIC']
+      - name: source_snapshot_id
+        data_tests:
+          - not_null
+      - name: source_file_name
+        data_tests:
+          - not_null
+
   - name: fct_order_item
     description: Central transaction fact at source order-item grain.
     columns:

@@ -58,26 +58,26 @@ Simple historical presence in Order Items is insufficient. Pre-win activity is r
 
 ### Empirical window analysis
 
-The current source snapshot yields 376 acquired sellers with a post-win delivered Order. Percentiles use linear interpolation over their first eligible Order lag:
+After the temporal-quality guard, the current source snapshot yields 375 acquired sellers with a valid-sequence post-win delivered Order. The one `INVALID_SEQUENCE` seller remains in acquisition counts but cannot receive temporal lifecycle metrics. Percentiles use linear interpolation over valid first eligible Order lag:
 
 | Measure | Observed value |
 | --- | ---: |
-| Count | 376 |
+| Count | 375 |
 | Minimum | 3.209745 days |
-| P25 | 22.617188 days |
-| Median | 44.293131 days |
-| P75 | 71.913027 days |
-| P90 | 101.939334 days |
-| P95 | 117.442888 days |
+| P25 | 22.525058 days |
+| Median | 44.255197 days |
+| P75 | 71.851609 days |
+| P90 | 100.292269 days |
+| P95 | 116.989605 days |
 | Maximum | 188.870972 days |
-| Activated within 30 days | 128 (34.042553%) |
-| Activated within 60 days | 246 (65.425532%) |
-| Activated within 90 days | 322 (85.638298%) |
-| Activated within 180 days | 374 (99.468085%) |
+| Activated within 30 days | 128 (34.133333%) |
+| Activated within 60 days | 246 (65.600000%) |
+| Activated within 90 days | 322 (85.866667%) |
+| Activated within 180 days | 373 (99.466667%) |
 
-The MVP selects **90 days**. It captures most observed activations while retaining 746 of 842 acquired sellers as mature cohorts at the empirical source cutoff. A 60-day window omits over one third of observed activations; 180 days leaves only 460 mature sellers and materially increases censoring. The P90 slightly exceeds 90 days, so the metric is explicitly a time-bounded activation standard, not an estimate of eventual activation.
+The MVP selects **90 days**. It captures most observed valid-sequence activations while retaining 745 of 842 acquired sellers as valid mature cohorts at the empirical source cutoff. A 60-day window omits over one third of observed activations; a longer window materially increases censoring. The P90 exceeds 90 days, so the metric is explicitly a time-bounded activation standard, not an estimate of eventual activation.
 
-The empirical cutoff is the maximum observed Order purchase timestamp, `2018-10-17 17:30:18`; it is a reproducible data boundary, not a claimed extraction timestamp. A seller enters the 90-day denominator only when `won_date + 90 days <= cutoff`. In the current copy, 746 sellers are time-mature and 314 activated within 90 days, an observed mature-cohort activation rate of 42.091153%. The remaining 96 sellers are incomplete cohorts and are excluded from the denominator, never counted as non-activated.
+The empirical cutoff is the maximum observed Order purchase timestamp, `2018-10-17 17:30:18`; it is a reproducible data boundary, not a claimed extraction timestamp. A seller enters the 90-day denominator only when temporal quality is `VALID` and `won_date + 90 days <= cutoff`. In the current copy, 745 sellers are valid and time-mature and 314 activated within 90 days, an observed mature-cohort activation rate of 42.147651%. The remaining 96 valid sellers are incomplete cohorts, and the one temporal exception is ineligible; neither group is counted as non-activated.
 
 Within the mature denominator, no qualifying event means **not activated in the linked public snapshots**, not proof that the seller never transacted in reality. The 462 ClosedDeal sellers absent from the e-commerce seller snapshot remain a material coverage limitation and must be disclosed with the KPI.
 
@@ -85,7 +85,7 @@ Within the mature denominator, no qualifying event means **not activated in the 
 
 The MVP preserves one observed Closed Deal whose `won_date` is two calendar days before its linked MQL `first_contact_date`. It is classified as `INVALID_SEQUENCE` rather than corrected, excluded, or quarantined. The row remains valid evidence that a Closed Deal occurred and contributes to Closed Deals, Acquired Sellers, and MQL-to-Acquired-Seller conversion.
 
-Sequence-dependent lifecycle metrics must require `temporal_quality_status = 'VALID'`. Time to first order, post-acquisition activation, and activation within 90 days will enforce that policy when `fct_seller_lifecycle` is implemented; no lifecycle result is produced in this stage.
+Sequence-dependent lifecycle metrics require `temporal_quality_status = 'VALID'`. The implemented `fct_seller_lifecycle` enforces this for time to first order, maturity, and activation within 90 days while retaining the invalid acquisition row with null temporal outcomes.
 
 ## Acquisition conversion
 
@@ -185,7 +185,7 @@ No higher-level paid/organic rollup is frozen. `landing_page_id` remains a sourc
 
 ## Controlled synthetic Advertising Spend contract
 
-The future synthetic source has one row per `spend_date × source_origin × scenario_id`.
+The implemented synthetic source has one row per `spend_date × source_origin × scenario_id`.
 
 Required fields:
 
@@ -201,6 +201,21 @@ Required fields:
 Generation must be deterministic for the same seed and methodology version, preserve the declared date/origin grain, avoid duplicate keys, and document plausible bounds before generation. Each scenario declares an a-priori allowlist of spend-eligible source_origin values; the contract does not assume that every observed origin is paid. Zero spend must be intentional rather than missing. Campaign is not generated in the MVP.
 
 The generator may use dates and source-origin coverage to define its domain, but it must not inspect Closed Deals, activation, Orders, GMV, conversion rates, or any downstream KPI to tune spend. Spend is never adjusted to create attractive CPL, Seller Acquisition Cost, GMV ROAS, or other outputs. Any metric mixing this spend with real Olist outcomes remains labeled as a synthetic scenario.
+
+The only MVP scenario is `baseline_v1`, using methodology `paid_media_daily_v1`, seed `20260913`, and BRL. Its a-priori paid-origin allowlist and daily baselines are:
+
+| source_origin | Daily baseline | Why included |
+| --- | ---: | --- |
+| `paid_search` | BRL 450.00 | Explicit paid-search acquisition source. |
+| `display` | BRL 180.00 | Advertising inventory source. |
+| `social` | BRL 300.00 | Treated as paid social only inside this disclosed scenario. |
+| `other_publicities` | BRL 120.00 | Explicit publicity/advertising source. |
+
+`email` is excluded because it is an owned/CRM channel without evidence of media buying; `other` is ambiguous. Organic search, referral, direct traffic, missing, unknown, and unattributed members are excluded because the source does not support treating them as paid media.
+
+For each eligible origin, generation spans its own minimum through maximum observed MQL `first_contact_date`. A declared month multiplier, weekday multiplier, and SHA-256-derived bounded effect of ±10% modify the baseline using integer basis points. No MQL volume or outcome value influences an amount.
+
+For GMV ROAS, the MVP selects an acquisition-cohort 90-day definition: spend dates define period P; sellers must have a valid Closed Deal whose `won_date` is in P; the numerator includes their delivered item-price GMV only in `(won_date, won_date + 90 days]`. Cohorts must have complete 90-day observation. Spend and outcome facts are aggregated independently by origin and period before division. This temporal alignment is non-causal and remains explicitly synthetic.
 
 ## OPEN DECISIONS
 

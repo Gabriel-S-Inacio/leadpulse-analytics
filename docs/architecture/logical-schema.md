@@ -4,7 +4,7 @@
 
 This document defines storage-independent logical contracts for the approved MVP dimensional tables. It does not define executable SQL, database schemas, PostgreSQL types, migrations, indexes, partitions, dbt materializations, or loading strategies.
 
-The approved surface is limited to `dim_date`, `dim_origin`, `dim_seller`, `fct_mql`, `fct_closed_deal`, `fct_seller_lifecycle`, `fct_order_item`, and future `fct_marketing_spend`. Campaign, EndCustomer, Product, and a separate Order fact are outside this contract.
+The approved surface is limited to `dim_date`, `dim_origin`, `dim_seller`, `fct_mql`, `fct_closed_deal`, `fct_seller_lifecycle`, `fct_order_item`, and `fct_marketing_spend`. Campaign, EndCustomer, Product, and a separate Order fact are outside this contract.
 
 ## Logical type vocabulary
 
@@ -237,7 +237,7 @@ Zero is correct for `eligible_gmv_amount` on an observed but non-qualifying item
 
 ### fct_marketing_spend
 
-**TABLE PURPOSE:** hold future deterministic synthetic advertising-spend scenarios at a source-origin/day grain.
+**TABLE PURPOSE:** hold deterministic synthetic advertising-spend scenarios at a source-origin/day grain.
 
 **GRAIN:** one row per `(spend_date, source_origin, scenario_id)`.
 
@@ -257,6 +257,8 @@ Zero is correct for `eligible_gmv_amount` on an observed but non-qualifying item
 | currency | Currency of spend values. | STRING | NO | Generator configuration | Explicit scenario parameter. | MVP accepted value `BRL`; no silent currency mixing. |
 | spend_amount | Synthetic advertising cost for date/origin/scenario. | DECIMAL | NO | Generated | Deterministic method independent of downstream outcomes. | Greater than or equal to 0. |
 | data_classification | Evidential classification of every spend row. | STRING | NO | Constant | Constant `SYNTHETIC`. | Exact accepted value `SYNTHETIC`; unequivocally synthetic and never presented as observed Olist data. |
+| source_snapshot_id | Deterministic identity of the generated source snapshot. | STRING | NO | Load metadata | SHA-256 of the generated CSV content. | Stable for identical generator version, seed, and inputs. |
+| source_file_name | Non-personal generated source filename. | STRING | NO | Load metadata | Source basename only. | No local path or credential. |
 
 Absence of a spend row means spend is not observed/generated for that grain and must not be interpreted as zero. A zero row is allowed only when explicitly produced by the declared methodology.
 

@@ -89,3 +89,46 @@ models:
         description: Source freight converted to NUMERIC and kept separate from price.
         data_tests:
           - not_null
+
+  - name: stg_synthetic_marketing_spend
+    description: Typed deterministic synthetic paid-media scenario with no business outcomes.
+    columns:
+      - name: spend_date
+        data_tests:
+          - not_null
+      - name: source_origin
+        data_tests:
+          - not_null
+      - name: scenario_id
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['baseline_v1']
+      - name: methodology_version
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['paid_media_daily_v1']
+      - name: generation_seed
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [20260913]
+      - name: currency
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['BRL']
+      - name: spend_amount
+        data_tests:
+          - not_null
+      - name: data_classification
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['SYNTHETIC']

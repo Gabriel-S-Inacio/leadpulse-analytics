@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import inspect
 import sys
 import tempfile
 import unittest
@@ -17,11 +18,19 @@ from leadpulse.ingestion.contracts import (
     ORDERS_CONTRACT,
     SELLERS_CONTRACT,
     SOURCE_CONTRACTS,
+    SYNTHETIC_MARKETING_SPEND_CONTRACT,
     RawSnapshotContract,
 )
 from leadpulse.ingestion.metadata import build_source_metadata
 from leadpulse.ingestion.mql import MqlSourceError, validate_mql_header
 from leadpulse.ingestion.snapshot import SnapshotSourceError, validate_source_header
+from leadpulse.synthetic import marketing_spend
+from leadpulse.synthetic.marketing_spend import (
+    DAILY_BASELINE_BY_ORIGIN,
+    DATA_CLASSIFICATION,
+    SyntheticSpendError,
+    generate_marketing_spend,
+)
 
 
 class PostgresConfigTest(unittest.TestCase):
@@ -131,7 +140,24 @@ class RawSnapshotContractTest(unittest.TestCase):
         self.assertEqual(len(targets), len(set(targets)))
         self.assertEqual(
             set(SOURCE_CONTRACTS),
-            {"mql", "closed-deals", "sellers", "orders", "order-items"},
+            {
+                "mql",
+                "closed-deals",
+                "sellers",
+                "orders",
+                "order-items",
+                "synthetic-spend",
+            },
+        )
+
+    def test_synthetic_spend_contract_uses_governed_grain(self) -> None:
+        self.assertEqual(
+            SYNTHETIC_MARKETING_SPEND_CONTRACT.target_table,
+            "raw.synthetic_marketing_spend",
+        )
+        self.assertEqual(
+            SYNTHETIC_MARKETING_SPEND_CONTRACT.primary_key,
+            ("spend_date", "source_origin", "scenario_id"),
         )
 
     def test_rejects_unknown_required_column(self) -> None:
@@ -154,3 +180,65 @@ class RawSnapshotContractTest(unittest.TestCase):
                 SnapshotSourceError, "unexpected closed deals columns"
             ):
                 validate_source_header(source, CLOSED_DEALS_CONTRACT)
+
+
+class SyntheticMarketingSpendTest(unittest.TestCase):
+    @staticmethod
+    def _write_mql_fixture(path: Path) -> None:
+        rows = [
+            "mql_id,first_contact_date,landing_page_id,origin",
+            "mql-1,2026-01-01,page-1,paid_search",
+            "mql-2,2026-01-03,page-2,paid_search",
+            "mql-3,2026-01-02,page-3,display",
+            "mql-4,2026-01-02,page-4,social",
+            "mql-5,2026-01-02,page-5,other_publicities",
+            "mql-6,2026-01-02,page-6,organic_search",
+        ]
+        path.write_text("\n".join(rows) + "\n", encoding="utf-8")
+
+    def test_generation_is_byte_stable_and_governed(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            source = root / "mql.csv"
+            first_output = root / "first.csv"
+            second_output = root / "second.csv"
+            self._write_mql_fixture(source)
+
+            first = generate_marketing_spend(source, first_output)
+            second = generate_marketing_spend(source, second_output)
+
+            self.assertEqual(first.row_count, 6)
+            self.assertEqual(first.source_sha256, second.source_sha256)
+            self.assertEqual(first_output.read_bytes(), second_output.read_bytes())
+            self.assertEqual(len(first.origin_bounds), len(DAILY_BASELINE_BY_ORIGIN))
+            self.assertIn(DATA_CLASSIFICATION, first_output.read_text(encoding="utf-8"))
+
+    def test_generation_requires_coverage_for_every_eligible_origin(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            source = Path(temporary) / "mql.csv"
+            source.write_text(
+                "mql_id,first_contact_date,landing_page_id,origin\n"
+                "mql-1,2026-01-01,page-1,paid_search\n",
+                encoding="utf-8",
+            )
+
+            with self.assertRaisesRegex(SyntheticSpendError, "no date coverage"):
+                generate_marketing_spend(source, Path(temporary) / "spend.csv")
+
+    def test_generator_has_no_downstream_or_database_dependency(self) -> None:
+        source = inspect.getsource(marketing_spend).lower()
+        forbidden = (
+            "psycopg",
+            "fct_closed_deal",
+            "fct_seller_lifecycle",
+            "fct_order_item",
+            "olist_orders",
+            "order_purchase_timestamp",
+            "eligible_gmv",
+            "gmv",
+            "conversion",
+        )
+
+        for token in forbidden:
+            with self.subTest(token=token):
+                self.assertNotIn(token, source)
