@@ -1,87 +1,85 @@
 # LeadPulse Analytics
 
-LeadPulse Analytics é uma iniciativa de Analytics Engineering, Data Engineering e Business Intelligence para consolidar dados de marketing e CRM em uma visão confiável do desempenho comercial.
+Produto analítico de portfólio que conecta aquisição, ativação e desempenho de
+vendedores em uma camada semântica governada e um dashboard executivo. Desenvolvido
+para o portfólio **Do Código à Decisão** com dados públicos Olist e um cenário de
+investimento de marketing explicitamente simulado.
 
-## Problema de negócio
+> **Public demo deployment target:**
+> <https://leadpulse.docodigoadecisao.com.br> — a URL é o alvo de publicação e não
+> deve ser considerada online até a infraestrutura passar pela aceitação de release.
 
-Dados de campanhas, leads, oportunidades e vendas costumam permanecer fragmentados entre plataformas, dificultando a atribuição de receita, a comparação entre canais e o acompanhamento do funil.
+As capturas finais previstas estão documentadas em
+[`docs/assets/README.md`](docs/assets/README.md); imagens provisórias não são
+versionadas.
 
-## Objetivo
+## O problema
 
-Construir uma base analítica consistente que conecte cenários de investimento em marketing à aquisição de sellers e ao GMV downstream, com métricas rastreáveis e definições compartilhadas.
+Leads, aquisição de vendedores e pedidos vivem em momentos e fontes diferentes.
+Sem contratos claros, é difícil responder quantos leads viraram vendedores, quantos
+começaram a vender, quanto GMV geraram e como um cenário de investimento se compara
+a esse resultado — sem confundir associação com causalidade.
 
-## Perguntas de negócio
+## A solução
 
-- Quais origens e canais estão associados à aquisição de sellers e ao GMV downstream?
-- Qual é o CPL e o Seller Acquisition Cost em cenários sintéticos claramente identificados?
-- Qual é a conversão de MQL para AcquiredSeller e a ativação em 90 dias?
-- Qual é o GMV ROAS dos cenários controlados, sem confundi-lo com retorno contábil?
-- Como MQLs evoluem até ClosedDeals, AcquiredSellers e atividade entregue no marketplace?
+O projeto ingere snapshots governados no PostgreSQL, transforma os dados com dbt e
+publica quatro marts semânticos consumidos por um dashboard Streamlit. A interface
+apresenta o funil de aquisição, ativação em 90 dias, pedidos, GMV e eficiência de
+marketing com filtros de período, origem e canal.
 
-## Visão preliminar da arquitetura
+## Principais resultados
 
-Fontes de marketing e CRM alimentarão uma camada de ingestão. Os dados brutos serão transformados e modelados para consumo por uma camada analítica, dashboards e, se necessário, APIs. Esta visão é conceitual e será refinada por decisões arquiteturais registradas.
+- **8.000** leads qualificados;
+- **842** vendedores adquiridos e **10,53%** de conversão;
+- **42,15%** de taxa de ativação entre vendedores com janela completa de 90 dias;
+- **4.457** pedidos e **R$ 664,9 mil** de GMV observado dos vendedores adquiridos;
+- **R$ 333,1 mil** de investimento no cenário sintético, nunca tratado como gasto observado.
 
-## Status
+## Arquitetura
 
-**Dashboard-ready semantic layer** — cinco fontes Olist e um cenário de Advertising Spend sintético percorrem geração/CSV → PostgreSQL raw → dbt staging. A camada analytics implementa as dimensões e facts aprovadas e publica quatro marts de consumo: aquisição, ativação, eficiência de marketing e desempenho downstream. Todo custo e KPI dependente de spend é explicitamente `SYNTHETIC`, determinístico, não causal e não representa gasto observado da Olist. O dashboard ainda não está implementado.
+```mermaid
+flowchart LR
+    A[Dados públicos Olist] --> B[Ingestão Python]
+    B --> C[(PostgreSQL RAW)]
+    C --> D[dbt staging]
+    D --> E[Dimensões e fatos]
+    E --> F[Marts semânticos]
+    F --> G[Dashboard Streamlit]
+    G --> H[leadpulse.docodigoadecisao.com.br]
+```
 
-Os marts disponíveis são `mart_acquisition_performance`, `mart_seller_activation`, `mart_marketing_efficiency` e `mart_downstream_performance`. Rates devem ser recalculados a partir dos numeradores e denominadores; cenários de spend e versões de lifecycle nunca devem ser misturados.
+No ambiente público, Caddy termina HTTPS e encaminha apenas o dashboard; o
+PostgreSQL permanece privado e é acessado por um usuário read-only com grants por
+coluna. Veja [a arquitetura de publicação](docs/deployment/public-demo.md).
 
-## Fontes planejadas para o MVP
+## Stack
 
-- **Dados reais:** Olist Marketing Funnel e Olist Brazilian E-Commerce.
-- **Dados sintéticos controlados:** Advertising Spend, sempre identificado como sintético e nunca apresentado como dado observado da Olist.
+Python 3.12 · PostgreSQL 16 · dbt · Docker/Compose · Streamlit · Plotly
 
-## Documentação de domínio
+## Qualidade de dados
 
-- [Modelo de domínio](docs/business/domain-model.md)
-- [Modelo de atribuição](docs/business/attribution-model.md)
-- [Contrato de KPIs](docs/business/kpi-contract.md)
-- [Semântica analítica do MVP](docs/business/analytics-semantics.md)
+Os contratos cobrem chaves, relacionamentos, valores aceitos, grains e
+reconciliações entre fatos e marts: **203 testes dbt** passam na release v1.0. A
+suíte Python também valida formatação, agregação, filtros, erros seguros,
+integração e navegação via AppTest.
 
-## Documentação de fontes
+## Executar localmente
 
-- [Manifesto de fontes](docs/data/source-manifest.md)
-- [Contratos das fontes](docs/data/source-contracts.md)
-- [Contratos de dados analíticos](docs/data/analytics-data-contracts.md)
-
-## Documentação de arquitetura
-
-- [Modelo dimensional conceitual](docs/architecture/dimensional-model.md)
-- [Schema lógico analítico](docs/architecture/logical-schema.md)
-- [Plataforma física de dados](docs/architecture/physical-data-platform.md)
-- [ADR 0001 — estratégia do modelo dimensional](docs/decisions/0001-dimensional-model-strategy.md)
-
-Datasets raw permanecem locais em `data/raw/` e não são versionados pelo Git.
-
-## Desenvolvimento local — ingestão e staging
-
-Os comandos abaixo partem da raiz do repositório e usam somente o ambiente virtual local.
+No PowerShell, a partir da raiz do repositório:
 
 ```powershell
+Copy-Item .env.example .env
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip
-python -m pip install -e ".[dev,data]"
-Copy-Item .env.example .env
+python -m pip install -e ".[dev,data,dashboard]"
+docker compose up -d
 ```
 
-Revise a senha de desenvolvimento em `.env` e carregue as variáveis na sessão atual:
-Se a porta 5432 não estiver disponível, altere somente `POSTGRES_PORT` no `.env` local.
+Baixe os snapshots Olist conforme os
+[contratos de fonte](docs/data/source-contracts.md), mantendo-os em `data/raw/`, e
+execute a ingestão:
 
 ```powershell
-Get-Content .env | Where-Object { $_ -and -not $_.StartsWith('#') } | ForEach-Object {
-    $name, $value = $_.Split('=', 2)
-    Set-Item -Path "Env:$name" -Value $value
-}
-```
-
-Suba e valide o PostgreSQL, carregue os snapshots implementados e execute o staging dbt:
-
-```powershell
-docker compose up -d postgres
-docker compose ps
 python -m leadpulse.ingestion mql
 python -m leadpulse.ingestion closed-deals
 python -m leadpulse.ingestion sellers
@@ -89,33 +87,39 @@ python -m leadpulse.ingestion orders
 python -m leadpulse.ingestion order-items
 python -m leadpulse.synthetic
 python -m leadpulse.ingestion synthetic-spend
-dbt debug --project-dir transform --profiles-dir transform
-dbt run --project-dir transform --profiles-dir transform
-dbt test --project-dir transform --profiles-dir transform
 ```
 
-Valide os testes Python e, opcionalmente, as contagens no PostgreSQL:
+Construa e valide a camada analítica, depois inicie o dashboard:
 
 ```powershell
-python -m unittest discover -s tests -v
-docker compose exec -T postgres psql -U $env:POSTGRES_USER -d $env:POSTGRES_DB -c "SELECT COUNT(*) FROM raw.olist_marketing_qualified_leads;"
-docker compose exec -T postgres psql -U $env:POSTGRES_USER -d $env:POSTGRES_DB -c "SELECT COUNT(*) FROM raw.olist_closed_deals;"
-docker compose exec -T postgres psql -U $env:POSTGRES_USER -d $env:POSTGRES_DB -c "SELECT COUNT(*) FROM raw.olist_sellers;"
-docker compose exec -T postgres psql -U $env:POSTGRES_USER -d $env:POSTGRES_DB -c "SELECT COUNT(*) FROM raw.olist_orders;"
-docker compose exec -T postgres psql -U $env:POSTGRES_USER -d $env:POSTGRES_DB -c "SELECT COUNT(*) FROM raw.olist_order_items;"
-docker compose exec -T postgres psql -U $env:POSTGRES_USER -d $env:POSTGRES_DB -c "SELECT COUNT(*) FROM raw.synthetic_marketing_spend;"
-docker compose exec -T postgres psql -U $env:POSTGRES_USER -d $env:POSTGRES_DB -c "SELECT COUNT(*) FROM staging.stg_olist_marketing_qualified_leads;"
-docker compose exec -T postgres psql -U $env:POSTGRES_USER -d $env:POSTGRES_DB -c "SELECT COUNT(*) FROM staging.stg_olist_closed_deals;"
+python -m dotenv run -- dbt debug --project-dir transform --profiles-dir transform
+python -m dotenv run -- dbt run --project-dir transform --profiles-dir transform
+python -m dotenv run -- dbt test --project-dir transform --profiles-dir transform
+python -m streamlit run app/app.py --server.port 8501
 ```
 
-## Roadmap macro
+Acesse <http://localhost:8501>. Nenhum `export` manual é necessário: aplicação e
+ingestão carregam `.env`, e o dbt é iniciado por `python-dotenv`.
 
-1. Discovery, glossário de negócio e decisões arquiteturais.
-2. Contratos de dados e estratégia de ingestão.
-3. Modelagem, qualidade e métricas analíticas.
-4. Camada de consumo e visualização.
-5. Observabilidade, automação e operação.
+## Public demo
 
-## Stack planejada
+A imagem de produção executa Streamlit como usuário sem privilégios e possui
+healthcheck. `docker-compose.prod.yml` demonstra o contrato Streamlit + Caddy sem
+incorporar credenciais. DNS, host, banco privado e secrets ainda são entradas da
+infraestrutura de publicação.
 
-As candidatas incluem Python 3.12+, SQL, armazenamento analítico, ferramenta de transformação, orquestração, BI, contêineres e CI/CD. Todas estão **sujeitas a validação arquitetural**; nenhuma escolha tecnológica além da fundação Python deste repositório é definitiva nesta etapa.
+Instruções operacionais: [`docs/deployment/public-demo.md`](docs/deployment/public-demo.md).
+
+## Metodologia e limitações
+
+- o investimento de marketing é sintético, determinístico e não representa gasto da Olist;
+- o retorno de GMV sobre investimento é não causal;
+- GMV é o valor bruto dos itens vendidos por vendedores adquiridos; exclui frete,
+  não usa valor de pagamento e não representa receita, lucro ou faturamento da empresa;
+- ativação usa uma janela completa e governada de 90 dias;
+- os dados formam um snapshot histórico estático, não uma operação em tempo real.
+
+Contratos detalhados: [KPIs](docs/business/kpi-contract.md),
+[semântica analítica](docs/business/analytics-semantics.md),
+[fontes](docs/data/source-manifest.md) e
+[arquitetura](docs/architecture/physical-data-platform.md).

@@ -10,7 +10,7 @@ from pathlib import Path
 import psycopg
 from psycopg import sql
 
-from leadpulse.ingestion.config import ConfigurationError, PostgresConfig
+from leadpulse.config import ConfigurationError, PostgresConfig
 from leadpulse.ingestion.contracts import RawSnapshotContract
 from leadpulse.ingestion.metadata import SourceMetadata, build_source_metadata
 

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from leadpulse.ingestion.config import PostgresConfig
+from leadpulse.config import PostgresConfig
 from leadpulse.ingestion.contracts import MQL_CONTRACT
 from leadpulse.ingestion.snapshot import (
     LoadResult,

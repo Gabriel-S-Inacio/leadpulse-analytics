@@ -1,0 +1,60 @@
+name: leadpulse-public-demo
+
+services:
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?Set in the deployment environment}
+      POSTGRES_USER: ${POSTGRES_USER:?Use the read-only dashboard role}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Inject from the deployment secret store}
+      POSTGRES_HOST: ${POSTGRES_HOST:?Set the private PostgreSQL hostname}
+      POSTGRES_PORT: ${POSTGRES_PORT:-5432}
+    expose:
+      - "8501"
+    networks:
+      - frontend
+      - database
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8501/_stcore/health', timeout=3)",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    security_opt:
+      - no-new-privileges:true
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      dashboard:
+        condition: service_healthy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - frontend
+    security_opt:
+      - no-new-privileges:true
+
+networks:
+  frontend:
+  database:
+    internal: true
+
+volumes:
+  caddy_data:
+  caddy_config:

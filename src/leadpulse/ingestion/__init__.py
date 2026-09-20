@@ -1,5 +1,5 @@
 """Minimal CSV-to-PostgreSQL ingestion primitives."""
 
-from leadpulse.ingestion.config import ConfigurationError, PostgresConfig
+from leadpulse.config import ConfigurationError, PostgresConfig
 
 __all__ = ["ConfigurationError", "PostgresConfig"]

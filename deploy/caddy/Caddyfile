@@ -1,0 +1,4 @@
+leadpulse.docodigoadecisao.com.br {
+    encode zstd gzip
+    reverse_proxy dashboard:8501
+}

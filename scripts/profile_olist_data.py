@@ -7,13 +7,12 @@ import csv
 import hashlib
 import json
 from collections import Counter
+from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from statistics import median
-from typing import Iterable
-
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 RAW_DIR = PROJECT_ROOT / "data" / "raw"
@@ -292,7 +291,7 @@ def profile_csv(path: Path, spec: TableSpec) -> dict[str, object]:
             "negative_count": 0,
             "min": None,
             "max": None,
-            "sum": Decimal("0"),
+            "sum": Decimal(0),
         }
         for column in spec.numeric_fields
         if column in fieldnames

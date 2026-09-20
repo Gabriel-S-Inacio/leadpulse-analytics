@@ -11,10 +11,10 @@ import subprocess
 import sys
 import tempfile
 import zipfile
+from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import BinaryIO, Iterable
-
+from typing import BinaryIO
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 RAW_DIR = PROJECT_ROOT / "data" / "raw"

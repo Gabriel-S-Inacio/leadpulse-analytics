@@ -50,7 +50,10 @@ class PostgresConfigTest(unittest.TestCase):
         self.assertNotIn("password", repr(config))
 
     def test_rejects_missing_password(self) -> None:
-        with self.assertRaisesRegex(ConfigurationError, "POSTGRES_PASSWORD is required"):
+        with self.assertRaisesRegex(
+            ConfigurationError,
+            "Missing required database variables: POSTGRES_PASSWORD",
+        ):
             PostgresConfig.from_env(
                 {
                     "POSTGRES_DB": "leadpulse",

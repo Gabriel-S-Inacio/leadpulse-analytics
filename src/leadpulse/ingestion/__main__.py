@@ -5,7 +5,7 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from leadpulse.ingestion.config import ConfigurationError, PostgresConfig
+from leadpulse.config import ConfigurationError, PostgresConfig
 from leadpulse.ingestion.contracts import SOURCE_CONTRACTS
 from leadpulse.ingestion.snapshot import SnapshotSourceError, load_snapshot
 
