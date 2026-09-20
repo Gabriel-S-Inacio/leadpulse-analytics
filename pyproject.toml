@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "leadpulse-analytics"
-version = "0.1.0"
+version = "1.0.0"
 description = "Analytics foundation for integrated marketing and CRM data."
 readme = "README.md"
 requires-python = ">=3.12"
