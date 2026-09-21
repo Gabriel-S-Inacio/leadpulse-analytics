@@ -1,42 +1,8 @@
-````markdown
 # LeadPulse Analytics
 
 Produto analítico de portfólio que conecta aquisição, ativação e desempenho de vendedores em uma camada semântica governada e um dashboard executivo.
 
 Desenvolvido para o portfólio **Do Código à Decisão**, o projeto utiliza dados públicos da Olist e um cenário de investimento de marketing explicitamente simulado.
-
-## Execução rápida
-
-Depois de preparar os dados na primeira execução, o projeto pode ser iniciado com:
-
-### Windows
-
-```powershell
-start.bat
-````
-
-ou:
-
-```powershell
-.\start.ps1
-```
-
-### Linux/macOS
-
-```bash
-chmod +x start.sh
-./start.sh
-```
-
-O dashboard será disponibilizado em:
-
-```text
-http://localhost:8501
-```
-
-Os starters verificam automaticamente o ambiente Python, a `.venv`, as dependências, a configuração local, o Docker, o PostgreSQL, a camada analítica e o Streamlit.
-
-> Em um clone novo, os datasets Olist precisam ser obtidos e a camada analítica construída antes da primeira execução completa.
 
 ---
 
@@ -81,7 +47,7 @@ A interface apresenta o funil de aquisição, ativação dos vendedores em 90 di
 * **R$ 664,9 mil** de GMV observado;
 * **R$ 333,1 mil** de investimento no cenário sintético de marketing.
 
-> O investimento de marketing é simulado e não representa gasto observado da Olist.
+> **Nota:** o investimento de marketing é simulado e não representa gasto observado da Olist.
 
 ---
 
@@ -103,7 +69,7 @@ O dashboard consome somente a camada semântica governada, evitando dependência
 
 ## Stack
 
-**Python 3.12 · PostgreSQL 16 · dbt · Docker Compose · Streamlit · Plotly**
+**Python 3.12** · **PostgreSQL 16** · **dbt** · **Docker Compose** · **Streamlit** · **Plotly**
 
 ---
 
@@ -111,33 +77,33 @@ O dashboard consome somente a camada semântica governada, evitando dependência
 
 ### Aquisição
 
-* Leads qualificados;
-* Negócios fechados;
-* Vendedores adquiridos;
-* Conversão de lead para vendedor.
+* Leads qualificados
+* Negócios fechados
+* Vendedores adquiridos
+* Conversão de lead para vendedor
 
 ### Ativação
 
-* Vendedores com janela completa de 90 dias;
-* Vendedores ativados;
-* Taxa de ativação;
-* Tempo até a primeira venda;
-* GMV nos primeiros 90 dias;
-* GMV por vendedor ativado;
-* Pedidos por vendedor ativado.
+* Vendedores com janela completa de 90 dias
+* Vendedores ativados
+* Taxa de ativação
+* Tempo até a primeira venda
+* GMV nos primeiros 90 dias
+* GMV por vendedor ativado
+* Pedidos por vendedor ativado
 
 ### Desempenho comercial
 
-* Pedidos de vendedores adquiridos;
-* GMV dos vendedores adquiridos;
-* desempenho por origem e período.
+* Pedidos de vendedores adquiridos
+* GMV dos vendedores adquiridos
+* Desempenho por origem e período
 
 ### Eficiência de marketing
 
-* Investimento de marketing simulado;
-* Custo por lead;
-* Custo por vendedor adquirido;
-* retorno de GMV sobre investimento.
+* Investimento de marketing simulado
+* Custo por lead
+* Custo por vendedor adquirido
+* Retorno de GMV sobre investimento
 
 ---
 
@@ -156,26 +122,15 @@ A camada analítica possui contratos para:
 
 A release atual possui **203 testes dbt** aprovados.
 
-A suíte Python também valida:
-
-* ingestão;
-* configuração;
-* formatação;
-* agregações;
-* filtros;
-* mensagens de erro seguras;
-* integração com PostgreSQL;
-* navegação do dashboard.
+A suíte Python também valida ingestão, configuração, formatação, agregações, filtros, mensagens de erro seguras, integração com PostgreSQL e navegação do dashboard.
 
 ---
 
-## Executar localmente
+## Execução rápida
 
-### Execução rápida
+Se os dados já foram provisionados e a camada analítica já foi construída, basta iniciar o LeadPulse pelos starters disponíveis na raiz do projeto.
 
-Se o projeto já possui os dados carregados e a camada analítica construída:
-
-#### Windows
+### Windows
 
 ```powershell
 start.bat
@@ -187,40 +142,39 @@ ou:
 .\start.ps1
 ```
 
-#### Linux/macOS
+### Linux/macOS
 
 ```bash
 chmod +x start.sh
 ./start.sh
 ```
 
-Os starters:
+Os starters verificam automaticamente:
 
-* verificam a versão do Python;
-* criam ou reutilizam `.venv`;
-* sincronizam as dependências;
-* verificam o arquivo `.env`;
-* validam Docker e Docker Compose;
-* iniciam o PostgreSQL;
-* verificam a camada analítica;
-* validam o Streamlit;
-* iniciam o dashboard.
+* Python e versão compatível;
+* ambiente virtual `.venv`;
+* dependências;
+* configuração `.env`;
+* Docker;
+* PostgreSQL;
+* semantic marts;
+* Streamlit.
 
-Quando o ambiente estiver pronto:
+Com o ambiente pronto, acesse:
 
 ```text
 http://localhost:8501
 ```
 
+> Em um clone novo, os datasets Olist precisam ser obtidos e a camada analítica construída antes da primeira execução completa.
+
 ---
 
-### Primeira execução após clonar o repositório
+## Primeira execução
 
 Os datasets públicos da Olist **não são versionados neste repositório**.
 
-Por isso, um clone novo precisa passar pela preparação inicial abaixo.
-
-#### 1. Criar a configuração local
+### 1. Configuração local
 
 No PowerShell:
 
@@ -228,50 +182,37 @@ No PowerShell:
 Copy-Item .env.example .env
 ```
 
-O arquivo `.env` permanece fora do Git.
+O arquivo `.env` é local e permanece fora do Git.
 
----
-
-#### 2. Criar o ambiente Python
+### 2. Ambiente Python
 
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
-```
-
-Instale as dependências do projeto:
-
-```powershell
 python -m pip install -e ".[dev,data,dashboard]"
 ```
 
----
-
-#### 3. Iniciar o PostgreSQL
+### 3. PostgreSQL
 
 ```powershell
 docker compose up -d
 ```
 
-O PostgreSQL é executado em container Docker e mantém seus dados em volume persistente.
+O banco é executado via Docker e utiliza volume persistente.
 
----
+### 4. Dados Olist
 
-#### 4. Obter os datasets
+Baixe os snapshots públicos conforme os [contratos de fonte](docs/data/source-contracts.md).
 
-Baixe os snapshots públicos da Olist conforme os [contratos de fonte](docs/data/source-contracts.md).
-
-Mantenha os arquivos dentro da estrutura indicada em:
+Os arquivos devem ser mantidos na estrutura esperada dentro de:
 
 ```text
 data/raw/
 ```
 
-Os arquivos brutos permanecem fora do versionamento Git.
+Os datasets brutos permanecem fora do Git.
 
----
-
-#### 5. Executar a ingestão
+### 5. Ingestão
 
 ```powershell
 python -m leadpulse.ingestion mql
@@ -281,47 +222,24 @@ python -m leadpulse.ingestion orders
 python -m leadpulse.ingestion order-items
 ```
 
-Gere o cenário sintético de marketing:
+Gere e carregue o cenário sintético de marketing:
 
 ```powershell
 python -m leadpulse.synthetic
-```
-
-Carregue o cenário gerado:
-
-```powershell
 python -m leadpulse.ingestion synthetic-spend
 ```
 
----
-
-#### 6. Construir a camada analítica
-
-Valide a configuração do dbt:
+### 6. Camada analítica
 
 ```powershell
 python -m dotenv run -- dbt debug --project-dir transform --profiles-dir transform
-```
-
-Construa os modelos:
-
-```powershell
 python -m dotenv run -- dbt run --project-dir transform --profiles-dir transform
-```
-
-Execute os testes:
-
-```powershell
 python -m dotenv run -- dbt test --project-dir transform --profiles-dir transform
 ```
 
-Após essa etapa, os semantic marts utilizados pelo dashboard estarão disponíveis.
+### 7. Dashboard
 
----
-
-#### 7. Iniciar o dashboard
-
-Você pode usar o starter:
+Depois da preparação inicial:
 
 ```powershell
 .\start.ps1
@@ -333,7 +251,7 @@ ou:
 start.bat
 ```
 
-Também é possível iniciar manualmente:
+Também é possível executar manualmente:
 
 ```powershell
 python -m streamlit run app/app.py --server.port 8501
@@ -347,46 +265,23 @@ http://localhost:8501
 
 ---
 
-### Execução manual
+## Requisitos
 
-Caso prefira não utilizar os starters:
-
-```powershell
-Copy-Item .env.example .env
-
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-
-python -m pip install -e ".[dev,data,dashboard]"
-
-docker compose up -d
-```
-
-Após provisionar os datasets e construir a camada analítica:
-
-```powershell
-python -m streamlit run app/app.py --server.port 8501
-```
-
----
-
-### Requisitos
-
-Para executar o LeadPulse localmente são necessários:
+Para executar o projeto localmente:
 
 * Python compatível com a versão definida em `pyproject.toml`;
 * Docker com Docker Compose;
 * datasets públicos da Olist para a primeira construção;
-* acesso às portas locais utilizadas por PostgreSQL e Streamlit.
+* portas locais utilizadas por PostgreSQL e Streamlit disponíveis.
 
-Os starters:
+Os starters **não**:
 
-* não instalam Python automaticamente;
-* não instalam Docker;
-* não removem ambientes existentes;
-* não removem volumes;
-* não apagam dados;
-* não sobrescrevem `.env` existente.
+* instalam Python;
+* instalam Docker;
+* removem `.venv`;
+* removem volumes;
+* apagam dados;
+* sobrescrevem `.env` existente.
 
 ---
 
@@ -394,7 +289,7 @@ Os starters:
 
 A demonstração pública ainda **não está disponível**.
 
-O projeto já está preparado para deployment containerizado e uma versão online será posteriormente disponibilizada no ecossistema **Do Código à Decisão**.
+O projeto está preparado para deployment containerizado e uma versão online será posteriormente disponibilizada no ecossistema **Do Código à Decisão**.
 
 Até lá, o dashboard pode ser executado localmente seguindo as instruções deste README.
 
@@ -417,8 +312,6 @@ Até lá, o dashboard pode ser executado localmente seguindo as instruções des
 
 ## Documentação
 
-Documentação detalhada do projeto:
-
 * [Contratos de KPIs](docs/business/kpi-contract.md)
 * [Semântica analítica](docs/business/analytics-semantics.md)
 * [Contratos das fontes](docs/data/source-contracts.md)
@@ -426,5 +319,8 @@ Documentação detalhada do projeto:
 * [Modelo dimensional](docs/architecture/dimensional-model.md)
 * [Arquitetura da plataforma](docs/architecture/physical-data-platform.md)
 
-```
-```
+---
+
+**Do Código à Decisão** — projetos de dados construídos para transformar código e dados em decisões.
+
+O ponto importante: **não coloque ` ```markdown ` antes do `# LeadPulse Analytics` nem ` ``` ` no final do arquivo**. Esses delimitadores servem só para eu exibir Markdown como texto aqui no chat; se forem copiados para o próprio `README.md`, o GitHub entende todo o conteúdo como código — exatamente o que aconteceu no seu print.
