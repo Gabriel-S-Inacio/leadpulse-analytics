@@ -322,5 +322,3 @@ Até lá, o dashboard pode ser executado localmente seguindo as instruções des
 ---
 
 **Do Código à Decisão** — projetos de dados construídos para transformar código e dados em decisões.
-
-O ponto importante: **não coloque ` ```markdown ` antes do `# LeadPulse Analytics` nem ` ``` ` no final do arquivo**. Esses delimitadores servem só para eu exibir Markdown como texto aqui no chat; se forem copiados para o próprio `README.md`, o GitHub entende todo o conteúdo como código — exatamente o que aconteceu no seu print.
